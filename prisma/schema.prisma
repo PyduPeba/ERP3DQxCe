@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Pedido {
+  id        Int      @id @default(autoincrement())
+  cliente   String
+  descricao String
+  status    String   @default("pendente")
+  createdAt DateTime @default(now())
+}
