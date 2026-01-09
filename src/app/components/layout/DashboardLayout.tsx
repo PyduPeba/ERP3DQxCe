@@ -7,19 +7,39 @@ import {
     Users,
     Printer,
     Settings,
-    Flame
+    Flame,
+    Key,
+    Dog,
+    Link2,
+    ChevronDown,
+    Wrench,
+    ClipboardList,
+    Package,
+    Clock,
+    BarChart3
 } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isStudioOpen, setIsStudioOpen] = useState(false);
+    const [isGestaoOpen, setIsGestaoOpen] = useState(false);
 
     const menuItems = [
         { href: "/", icon: LayoutDashboard, label: "Dashboard" },
         { href: "/pedidos", icon: ShoppingCart, label: "Pedidos" },
         { href: "/clientes", icon: Users, label: "Clientes" },
         { href: "/producao", icon: Printer, label: "Produção" },
-        { href: "/config", icon: Settings, label: "Configurações" },
     ];
+
+    const gestaoItems = [
+        { href: "/suporte/helpdesk", icon: Wrench, label: "Helpdesk" },
+        { href: "/suporte/os", icon: ClipboardList, label: "Ordens de Serviço" },
+        { href: "/suporte/estoque", icon: Package, label: "Estoque" },
+        { href: "/suporte/locacao", icon: Clock, label: "Locação" },
+        { href: "/suporte/relatorios", icon: BarChart3, label: "Relatórios" },
+    ];
+
+    const settingsItem = { href: "/config", icon: Settings, label: "Configurações" };
 
     return (
         <div className="min-h-screen flex bg-gray-100">
@@ -60,6 +80,66 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </span>
                         </Link>
                     ))}
+
+                    {/* GESTÃO PROFISSIONAL SECTION */}
+                    <div className="pt-4 border-t border-gray-700 mt-4">
+                        <button
+                            onClick={() => isExpanded && setIsGestaoOpen(!isGestaoOpen)}
+                            className="w-full flex items-center justify-between px-3 py-3 rounded-lg hover:bg-gray-700 transition-colors group text-left"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Wrench className="w-5 h-5 flex-shrink-0 text-blue-400" />
+                                <span
+                                    className={`whitespace-nowrap font-semibold transition-opacity duration-300 ${isExpanded ? "opacity-100" : "opacity-0 w-0"
+                                        }`}
+                                >
+                                    Gestão Profissional
+                                </span>
+                            </div>
+                            {isExpanded && (
+                                <ChevronDown className={`w-4 h-4 transition-transform ${isGestaoOpen ? 'rotate-180' : ''}`} />
+                            )}
+                        </button>
+
+                        {(isExpanded && isGestaoOpen) && (
+                            <div className="mt-2 ml-4 space-y-1">
+                                {gestaoItems.map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors group"
+                                    >
+                                        <item.icon className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                        <span className="text-sm whitespace-nowrap">{item.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                        {!isExpanded && (
+                             <div className="flex flex-col items-center pt-2 space-y-4">
+                                 {gestaoItems.map((item) => (
+                                     <Link key={item.href} href={item.href} className="hover:text-blue-400 transition-colors">
+                                         <item.icon className="w-4 h-4" />
+                                     </Link>
+                                 ))}
+                             </div>
+                        )}
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-700 mt-4">
+                        <Link
+                            href={settingsItem.href}
+                            className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-700 transition-colors group"
+                        >
+                            <settingsItem.icon className="w-5 h-5 flex-shrink-0 text-gray-400" />
+                            <span
+                                className={`whitespace-nowrap transition-opacity duration-300 ${isExpanded ? "opacity-100" : "opacity-0 w-0"
+                                    }`}
+                            >
+                                {settingsItem.label}
+                            </span>
+                        </Link>
+                    </div>
                 </nav>
 
                 {/* FOOTER */}
