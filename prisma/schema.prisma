@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
-  engineType = "library"
+  engineType = "client"
+  output   = "./generated-client"
 }
 
 datasource db {
@@ -11,6 +12,19 @@ model Pedido {
   id        Int      @id @default(autoincrement())
   cliente   String
   descricao String
-  status    String   @default("pendente")
+  status    String   @default("pendente") // pendente, design, aprovacao, producao, finalizado, cancelado
+  prioridade String   @default("media")    // baixa, media, alta, urgente
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  logs      PedidoLog[]
+}
+
+model PedidoLog {
+  id        Int      @id @default(autoincrement())
+  pedidoId  Int
+  pedido    Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  acao      String   // criacao, alteracao_status, alteracao_dados, exclusao
+  detalhes  String?
+  usuario   String   @default("Sistema")
   createdAt DateTime @default(now())
 }

@@ -14,6 +14,7 @@
 # next.js
 /.next/
 /out/
+dist/
 
 # production
 /build
@@ -44,3 +45,11 @@ next-env.d.ts
 /prisma/dev.db
 /prisma/dev.db-journal
 /src/generated/prisma
+
+# Prisma generated
+#risma/generated-client/
+
+# Local tooling / caches
+stl-cache/
+*.stl
+*.scad
