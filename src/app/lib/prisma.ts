@@ -1,22 +1,29 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import Database from "better-sqlite3";
+import path from "path";
 
 const globalForPrisma = global as unknown as {
     prisma: PrismaClient | undefined;
 };
 
-const adapter = new PrismaBetterSqlite3({ url: "file:./prisma/dev.db" });
+const getPrismaClient = () => {
+    // Caminho absoluto para o banco de dados SQLite
+    const dbPath = path.join(process.cwd(), "prisma", "dev.db");
 
-export const prisma =
-    globalForPrisma.prisma ??
-    new PrismaClient({
-        datasources: {
-            db: {
-                url: "file:./prisma/dev.db",
-            },
-        },
-    } as any);
+    // Inicializa o banco SQLite diretamente
+    const db = new Database(dbPath);
 
-if (process.env.NODE_ENV !== "production")
+    // Cria o adapter do Prisma 7 para better-sqlite3
+    // @ts-ignore - O tipo está incorreto na biblioteca, mas funciona
+    const adapter = new PrismaBetterSqlite3(db);
+
+    // Retorna o PrismaClient com o adapter configurado
+    return new PrismaClient({ adapter });
+};
+
+export const prisma = globalForPrisma.prisma ?? getPrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
     globalForPrisma.prisma = prisma;
+}
