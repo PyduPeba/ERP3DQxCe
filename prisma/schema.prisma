@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "client"
-  output   = "./generated-client"
+  output     = "./generated-client"
 }
 
 datasource db {
@@ -9,22 +9,99 @@ datasource db {
 }
 
 model Pedido {
-  id        Int      @id @default(autoincrement())
-  cliente   String
-  descricao String
-  status    String   @default("pendente") // pendente, design, aprovacao, producao, finalizado, cancelado
-  prioridade String   @default("media")    // baixa, media, alta, urgente
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  logs      PedidoLog[]
+  id         Int         @id @default(autoincrement())
+  cliente    String
+  descricao  String
+  status     String      @default("pendente") // pendente, design, aprovacao, producao, finalizado, cancelado
+  prioridade String      @default("media") // baixa, media, alta, urgente
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @default(now()) @updatedAt
+  logs       PedidoLog[]
 }
 
 model PedidoLog {
   id        Int      @id @default(autoincrement())
   pedidoId  Int
   pedido    Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  acao      String   // criacao, alteracao_status, alteracao_dados, exclusao
+  acao      String // criacao, alteracao_status, alteracao_dados, exclusao
   detalhes  String?
   usuario   String   @default("Sistema")
   createdAt DateTime @default(now())
+}
+
+// ============================================
+// MÓDULO DE SUPORTE PROFISSIONAL
+// ============================================
+
+model Chamado {
+  id         Int      @id @default(autoincrement())
+  titulo     String
+  descricao  String
+  prioridade String   @default("media") // baixa, media, alta, urgente
+  status     String   @default("aberto") // aberto, em_andamento, resolvido, fechado
+  cliente    String? // Nome do cliente
+  tecnico    String? // Nome do técnico responsável
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ordensServico OrdemServico[]
+}
+
+model OrdemServico {
+  id           Int      @id @default(autoincrement())
+  numero       String   @unique
+  chamadoId    Int?
+  cliente      String?
+  descricao    String
+  status       String   @default("pendente") // pendente, em_andamento, concluido, cancelado
+  valorMaoObra Float?
+  observacoes  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  chamado     Chamado? @relation(fields: [chamadoId], references: [id])
+  itensUsados ItemOS[]
+}
+
+model ItemOS {
+  id            Int    @id @default(autoincrement())
+  osId          Int
+  itemEstoqueId Int
+  quantidade    Int
+  valorUnitario Float?
+
+  os   OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)
+  item ItemEstoque  @relation(fields: [itemEstoqueId], references: [id])
+}
+
+model ItemEstoque {
+  id          Int      @id @default(autoincrement())
+  codigo      String?  @unique
+  nome        String
+  descricao   String?
+  categoria   String? // pecas, ferramentas, consumiveis, etc
+  quantidade  Int      @default(0)
+  minimo      Int      @default(0)
+  valorUnit   Float?
+  fornecedor  String?
+  localizacao String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  itensOS ItemOS[]
+}
+
+model Locacao {
+  id          Int      @id @default(autoincrement())
+  equipamento String
+  descricao   String?
+  cliente     String?
+  dataInicio  DateTime
+  dataFim     DateTime
+  valorMensal Float
+  valorTotal  Float?
+  status      String   @default("ativo") // ativo, vencido, finalizado, cancelado
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
