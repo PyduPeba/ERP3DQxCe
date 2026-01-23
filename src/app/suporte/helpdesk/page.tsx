@@ -1,8 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { Wrench, Plus, Search, Filter, Clock, AlertCircle } from "lucide-react";
+import PermissionGuard from "@/app/components/auth/PermissionGuard";
+import { Wrench, Plus, Search, Filter, X, Save, AlertCircle, Eye, CheckCircle, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import Link from "next/link";
+import { usePermissions } from "@/hooks/usePermissions";
 
 type Chamado = {
   id: number;
@@ -10,145 +14,267 @@ type Chamado = {
   descricao: string;
   prioridade: string;
   status: string;
-  cliente?: string;
+  cliente: string;
+  tipoAtendimento: string;
+  categoria: string;
+  equipamento?: string;
+  numeroSerie?: string;
+  patrimonio?: string;
   tecnico?: string;
+  solucao?: string;
+  fechadoEm?: string;
   createdAt: string;
 };
 
+type Cliente = {
+    id: number;
+    nome: string;
+};
+
 export default function HelpdeskPage() {
+  const { user, canDo, loading: permLoading } = usePermissions();
   const [chamados, setChamados] = useState<Chamado[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  
+  const [selectedChamado, setSelectedChamado] = useState<Chamado | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
+      titulo: "",
+      clienteId: "",
+      tipoAtendimento: "remoto",
+      categoria: "software",
+      equipamento: "",
+      numeroSerie: "",
+      patrimonio: "",
+      prioridade: "media",
+      descricao: "",
+      sla: ""
+  });
+
+  const [editData, setEditData] = useState({
+      status: "",
+      solucao: "",
+      tecnico: ""
+  });
 
   useEffect(() => {
-    fetchChamados();
+    fetchData();
   }, []);
 
-  const fetchChamados = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch("/api/suporte/chamados");
-      const data = await res.json();
-      setChamados(data);
+        const [chamadosRes, clientesRes] = await Promise.all([
+            fetch("/api/suporte/chamados"),
+            fetch("/api/clientes")
+        ]);
+        const chamadosData = await chamadosRes.json();
+        const clientesData = await clientesRes.json();
+        if (Array.isArray(chamadosData)) setChamados(chamadosData);
+        if (Array.isArray(clientesData)) setClientes(clientesData);
     } catch (error) {
-      console.error("Erro ao buscar chamados:", error);
+      console.error("Erro ao carregar dados:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getPrioridadeColor = (prioridade: string) => {
-    const colors = {
-      baixa: "bg-gray-100 text-gray-700",
-      media: "bg-blue-100 text-blue-700",
-      alta: "bg-orange-100 text-orange-700",
-      urgente: "bg-red-100 text-red-700",
-    };
-    return colors[prioridade as keyof typeof colors] || colors.media;
-  };
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setSubmitting(true);
+      try {
+          const selectedCliente = clientes.find(c => c.id.toString() === formData.clienteId);
+          const payload = { ...formData, cliente: selectedCliente?.nome || "Cliente Não Identificado" };
+          const res = await fetch("/api/suporte/chamados", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error("Erro");
+          toast.success("Chamado aberto!");
+          setShowCreateModal(false);
+          setFormData({
+            titulo: "", clienteId: "", tipoAtendimento: "remoto", categoria: "software",
+            equipamento: "", numeroSerie: "", patrimonio: "", prioridade: "media", descricao: "", sla: ""
+          });
+          fetchData();
+      } catch (error) {
+          toast.error("Erro ao criar.");
+      } finally {
+          setSubmitting(false);
+      }
+  }
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      aberto: "bg-blue-100 text-blue-700",
-      em_andamento: "bg-yellow-100 text-yellow-700",
-      resolvido: "bg-green-100 text-green-700",
-      fechado: "bg-gray-100 text-gray-700",
-    };
-    return colors[status as keyof typeof colors] || colors.aberto;
-  };
+  const handleEditSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!selectedChamado) return;
+      setSubmitting(true);
+      try {
+           const updateRes = await fetch(`/api/suporte/chamados`, { 
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: selectedChamado.id, ...editData })
+           });
+           if (!updateRes.ok) throw new Error("Erro");
+           toast.success("Chamado atualizado!");
+           setShowEditModal(false);
+           fetchData();
+      } catch (error) {
+          toast.error("Erro ao atualizar.");
+      } finally {
+          setSubmitting(false);
+      }
+  }
+
+  const openEditModal = (chamado: Chamado) => {
+      setSelectedChamado(chamado);
+      setEditData({
+          status: chamado.status,
+          solucao: chamado.solucao || "",
+          tecnico: chamado.tecnico || ""
+      });
+      setShowEditModal(true);
+  }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+    <PermissionGuard module="GESTAO">
+        <DashboardLayout>
+      <div className="space-y-6 relative">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Suporte Técnico / Helpdesk</h1>
             <p className="text-gray-500">Abertura e gerenciamento de chamados (SLA)</p>
           </div>
-          <button 
-            onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-5 h-5" />
-            Novo Chamado
-          </button>
+          {canDo('GESTAO', 'canCreate') && (
+            <button 
+                onClick={() => setShowCreateModal(true)} 
+                className="w-full sm:w-auto bg-blue-600 text-white px-4 py-3 sm:py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/10"
+            >
+                <Plus className="w-5 h-5" /> Novo Chamado
+            </button>
+          )}
         </div>
 
-        {/* Filters */}
-        <div className="bg-white p-4 rounded-xl border border-gray-200 flex gap-3">
-          <div className="flex-1 relative">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar chamados..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filtros
-          </button>
-        </div>
-
-        {/* Chamados List */}
-        {loading ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-500">Carregando chamados...</p>
-          </div>
-        ) : chamados.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center p-12 text-center">
-            <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
-              <Wrench className="w-8 h-8" />
+        {loading ? <p>Carregando...</p> : (
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+                <table className="w-full min-w-[800px] sm:min-w-0">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="text-left p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">ID</th>
+                      <th className="text-left p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Título</th>
+                      <th className="text-left p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cliente</th>
+                      <th className="text-left p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Prioridade</th>
+                      <th className="text-left p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                      <th className="text-left p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {chamados.map((chamado) => (
+                      <tr key={chamado.id} onClick={() => openEditModal(chamado)} className="hover:bg-gray-50/80 cursor-pointer transition-all group animate-in fade-in slide-in-from-left-2 duration-300">
+                        <td className="p-4 font-black text-gray-400">#{chamado.id}</td>
+                        <td className="p-4">
+                            <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase text-xs">
+                                {chamado.titulo}
+                            </div>
+                        </td>
+                        <td className="p-4 text-sm text-gray-600 font-medium">{chamado.cliente}</td>
+                        <td className="p-4">
+                            <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                                chamado.prioridade === 'alta' ? 'bg-red-100 text-red-700' :
+                                chamado.prioridade === 'media' ? 'bg-amber-100 text-amber-700' :
+                                'bg-blue-100 text-blue-700'
+                            }`}>
+                                {chamado.prioridade}
+                            </span>
+                        </td>
+                        <td className="p-4">
+                            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-200">
+                                {chamado.status}
+                            </span>
+                        </td>
+                        <td className="p-4">
+                            <div className="flex items-center gap-2">
+                                <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                    <Eye size={16} />
+                                </button>
+                            </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">Nenhum chamado aberto</h2>
-            <p className="text-gray-500 max-w-sm mt-2">
-              Os chamados de suporte aparecerão aqui. Comece abrindo um novo chamado para um cliente.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">ID</th>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Título</th>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Cliente</th>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Prioridade</th>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Status</th>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Técnico</th>
-                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Criado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {chamados.map((chamado) => (
-                  <tr key={chamado.id} className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
-                    <td className="p-4 text-sm font-medium text-gray-900">#{chamado.id}</td>
-                    <td className="p-4">
-                      <div className="font-medium text-gray-900">{chamado.titulo}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">{chamado.descricao}</div>
-                    </td>
-                    <td className="p-4 text-sm text-gray-700">{chamado.cliente || "-"}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPrioridadeColor(chamado.prioridade)}`}>
-                        {chamado.prioridade}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(chamado.status)}`}>
-                        {chamado.status.replace("_", " ")}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm text-gray-700">{chamado.tecnico || "-"}</td>
-                    <td className="p-4 text-sm text-gray-500">
-                      {new Date(chamado.createdAt).toLocaleDateString("pt-BR")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {chamados.length === 0 && <div className="p-12 text-center text-gray-500">Nenhum chamado aberto.</div>}
           </div>
         )}
+
+        {showCreateModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="flex items-center justify-between p-6 border-b">
+                        <h2 className="text-xl font-bold flex items-center gap-2"><Plus className="text-blue-600" /> Novo Chamado</h2>
+                        <button onClick={() => setShowCreateModal(false)}><X size={24} /></button>
+                    </div>
+                    <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+                         <div className="grid grid-cols-2 gap-4">
+                            <div><label className="block text-sm font-medium mb-1">Título</label><input required className="w-full p-2 border rounded-lg" value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} /></div>
+                            <div><label className="block text-sm font-medium mb-1">Cliente</label><select required className="w-full p-2 border rounded-lg" value={formData.clienteId} onChange={e => setFormData({...formData, clienteId: e.target.value})}>{clientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}</select></div>
+                         </div>
+                         <div className="flex justify-end gap-3 pt-4"><button type="submit" disabled={submitting} className="px-6 py-2 bg-blue-600 text-white rounded-lg">Salvar</button></div>
+                    </form>
+                </div>
+            </div>
+        )}
+
+        {showEditModal && selectedChamado && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl">
+                    <div className="flex items-center justify-between p-6 border-b">
+                        <h2 className="font-bold flex items-center gap-2"><Wrench size={20} /> Chamado #{selectedChamado.id}</h2>
+                        <button onClick={() => setShowEditModal(false)}><X size={24} /></button>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="space-y-4">
+                            <div className="bg-gray-50 p-4 rounded-xl text-sm">
+                                <div className="font-bold mb-1 text-gray-500 uppercase text-[10px]">Descrição</div>
+                                <p className="text-gray-900">{selectedChamado.descricao}</p>
+                            </div>
+                            <label className="block text-sm font-medium">Solução Técnica</label>
+                            <textarea className="w-full p-3 border rounded-xl outline-none" rows={5} value={editData.solucao} onChange={e => setEditData({...editData, solucao: e.target.value})} disabled={selectedChamado.status === 'fechado'} />
+                         </div>
+                         <div className="space-y-4">
+                            <label className="block text-sm font-medium">Status</label>
+                            <select 
+                                className="w-full p-2 border rounded-lg font-bold" 
+                                value={editData.status} 
+                                onChange={e => {
+                                    const next = e.target.value;
+                                    if (user?.perfil === 'TECNICO' && (next === 'aberto' || next === 'fechado')) {
+                                        toast.error("Técnico não pode definir este status.");
+                                        return;
+                                    }
+                                    setEditData({...editData, status: next});
+                                }}
+                                disabled={selectedChamado.status === 'fechado'}
+                            >
+                                <option value="aberto">Aberto</option>
+                                <option value="em_andamento">Em Andamento</option>
+                                <option value="resolvido">Resolvido</option>
+                                <option value="fechado">Fechado</option>
+                            </select>
+                            <button onClick={handleEditSubmit} className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg">Salvar Alterações</button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        )}
       </div>
-    </DashboardLayout>
+        </DashboardLayout>
+    </PermissionGuard>
   );
 }

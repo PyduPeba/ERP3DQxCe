@@ -1,3 +1,5 @@
+// Force reload v22
+// Last Refresh: 2026-01-22 11:20
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {

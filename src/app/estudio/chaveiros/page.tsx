@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import ThreeScene from "../components/ThreeScene";
 import * as THREE from "three";
 import { FontLoader, TextGeometry, STLExporter } from "three-stdlib";
@@ -109,7 +110,8 @@ undefined, (err) => {
     };
 
     return (
-        <DashboardLayout>
+        <PermissionGuard module="ESTUDIO">
+            <DashboardLayout>
             <div className="flex flex-col h-[calc(100vh-8rem)]">
                 <div className="flex items-center justify-between mb-6">
                     <div>
@@ -194,6 +196,7 @@ undefined, (err) => {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+            </DashboardLayout>
+        </PermissionGuard>
     );
 }

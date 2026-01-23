@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import ThreeScene from "../components/ThreeScene";
 import * as THREE from "three";
 import { FontLoader, TextGeometry, STLExporter } from "three-stdlib";
@@ -108,7 +109,8 @@ undefined, (err) => {
     }, [generate3D]);
 
     return (
-        <DashboardLayout>
+        <PermissionGuard module="ESTUDIO">
+            <DashboardLayout>
             <div className="max-w-6xl mx-auto space-y-6 pb-12">
                 <div className="flex items-center justify-between bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-4">
@@ -167,6 +169,7 @@ undefined, (err) => {
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
+            </DashboardLayout>
+        </PermissionGuard>
     );
 }

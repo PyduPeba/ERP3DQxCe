@@ -26,8 +26,17 @@ export default function PedidosPage() {
     fetch('/api/pedidos')
       .then(res => res.json())
       .then(data => {
-        setPedidos(data);
+        if (Array.isArray(data)) {
+            setPedidos(data);
+        } else {
+            console.error("Pedidos API Error:", data);
+            setPedidos([]); // Fallback to empty array
+        }
         setLoading(false);
+      })
+      .catch(err => {
+          console.error("Fetch error:", err);
+          setLoading(false);
       });
   }, []);
 

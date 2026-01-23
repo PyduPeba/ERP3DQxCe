@@ -87,6 +87,9 @@ Prisma.NullTypes = NullTypes
  * Enums
  */
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -109,9 +112,77 @@ exports.Prisma.PedidoLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ChamadoScalarFieldEnum = {
+  id: 'id',
+  titulo: 'titulo',
+  descricao: 'descricao',
+  prioridade: 'prioridade',
+  status: 'status',
+  cliente: 'cliente',
+  tecnico: 'tecnico',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrdemServicoScalarFieldEnum = {
+  id: 'id',
+  numero: 'numero',
+  chamadoId: 'chamadoId',
+  cliente: 'cliente',
+  descricao: 'descricao',
+  status: 'status',
+  valorMaoObra: 'valorMaoObra',
+  observacoes: 'observacoes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ItemOSScalarFieldEnum = {
+  id: 'id',
+  osId: 'osId',
+  itemEstoqueId: 'itemEstoqueId',
+  quantidade: 'quantidade',
+  valorUnitario: 'valorUnitario'
+};
+
+exports.Prisma.ItemEstoqueScalarFieldEnum = {
+  id: 'id',
+  codigo: 'codigo',
+  nome: 'nome',
+  descricao: 'descricao',
+  categoria: 'categoria',
+  quantidade: 'quantidade',
+  minimo: 'minimo',
+  valorUnit: 'valorUnit',
+  fornecedor: 'fornecedor',
+  localizacao: 'localizacao',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LocacaoScalarFieldEnum = {
+  id: 'id',
+  equipamento: 'equipamento',
+  descricao: 'descricao',
+  cliente: 'cliente',
+  dataInicio: 'dataInicio',
+  dataFim: 'dataFim',
+  valorMensal: 'valorMensal',
+  valorTotal: 'valorTotal',
+  status: 'status',
+  observacoes: 'observacoes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
 };
 
 exports.Prisma.NullsOrder = {
@@ -122,7 +193,12 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   Pedido: 'Pedido',
-  PedidoLog: 'PedidoLog'
+  PedidoLog: 'PedidoLog',
+  Chamado: 'Chamado',
+  OrdemServico: 'OrdemServico',
+  ItemOS: 'ItemOS',
+  ItemEstoque: 'ItemEstoque',
+  Locacao: 'Locacao'
 };
 /**
  * Create the Client
@@ -131,11 +207,11 @@ const config = {
   "previewFeatures": [],
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
-  "activeProvider": "sqlite",
-  "inlineSchema": "generator client {\n  provider   = \"prisma-client-js\"\n  engineType = \"client\"\n  output     = \"./generated-client\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n}\n\nmodel Pedido {\n  id         Int         @id @default(autoincrement())\n  cliente    String\n  descricao  String\n  status     String      @default(\"pendente\") // pendente, design, aprovacao, producao, finalizado, cancelado\n  prioridade String      @default(\"media\") // baixa, media, alta, urgente\n  createdAt  DateTime    @default(now())\n  updatedAt  DateTime    @default(now()) @updatedAt\n  logs       PedidoLog[]\n}\n\nmodel PedidoLog {\n  id        Int      @id @default(autoincrement())\n  pedidoId  Int\n  pedido    Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)\n  acao      String // criacao, alteracao_status, alteracao_dados, exclusao\n  detalhes  String?\n  usuario   String   @default(\"Sistema\")\n  createdAt DateTime @default(now())\n}\n"
+  "activeProvider": "postgresql",
+  "inlineSchema": "generator client {\n  provider   = \"prisma-client-js\"\n  engineType = \"binary\"\n  output     = \"./generated-client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Pedido {\n  id         Int         @id @default(autoincrement())\n  cliente    String\n  descricao  String\n  status     String      @default(\"pendente\") // pendente, design, aprovacao, producao, finalizado, cancelado\n  prioridade String      @default(\"media\") // baixa, media, alta, urgente\n  createdAt  DateTime    @default(now())\n  updatedAt  DateTime    @default(now()) @updatedAt\n  logs       PedidoLog[]\n}\n\nmodel PedidoLog {\n  id        Int      @id @default(autoincrement())\n  pedidoId  Int\n  pedido    Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)\n  acao      String // criacao, alteracao_status, alteracao_dados, exclusao\n  detalhes  String?\n  usuario   String   @default(\"Sistema\")\n  createdAt DateTime @default(now())\n}\n\n// ============================================\n// MÓDULO DE SUPORTE PROFISSIONAL\n// ============================================\n\nmodel Chamado {\n  id         Int      @id @default(autoincrement())\n  titulo     String\n  descricao  String\n  prioridade String   @default(\"media\") // baixa, media, alta, urgente\n  status     String   @default(\"aberto\") // aberto, em_andamento, resolvido, fechado\n  cliente    String? // Nome do cliente\n  tecnico    String? // Nome do técnico responsável\n  createdAt  DateTime @default(now())\n  updatedAt  DateTime @updatedAt\n\n  ordensServico OrdemServico[]\n}\n\nmodel OrdemServico {\n  id           Int      @id @default(autoincrement())\n  numero       String   @unique\n  chamadoId    Int?\n  cliente      String?\n  descricao    String\n  status       String   @default(\"pendente\") // pendente, em_andamento, concluido, cancelado\n  valorMaoObra Float?\n  observacoes  String?\n  createdAt    DateTime @default(now())\n  updatedAt    DateTime @updatedAt\n\n  chamado     Chamado? @relation(fields: [chamadoId], references: [id])\n  itensUsados ItemOS[]\n}\n\nmodel ItemOS {\n  id            Int    @id @default(autoincrement())\n  osId          Int\n  itemEstoqueId Int\n  quantidade    Int\n  valorUnitario Float?\n\n  os   OrdemServico @relation(fields: [osId], references: [id], onDelete: Cascade)\n  item ItemEstoque  @relation(fields: [itemEstoqueId], references: [id])\n}\n\nmodel ItemEstoque {\n  id          Int      @id @default(autoincrement())\n  codigo      String?  @unique\n  nome        String\n  descricao   String?\n  categoria   String? // pecas, ferramentas, consumiveis, etc\n  quantidade  Int      @default(0)\n  minimo      Int      @default(0)\n  valorUnit   Float?\n  fornecedor  String?\n  localizacao String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  itensOS ItemOS[]\n}\n\nmodel Locacao {\n  id          Int      @id @default(autoincrement())\n  equipamento String\n  descricao   String?\n  cliente     String?\n  dataInicio  DateTime\n  dataFim     DateTime\n  valorMensal Float\n  valorTotal  Float?\n  status      String   @default(\"ativo\") // ativo, vencido, finalizado, cancelado\n  observacoes String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Pedido\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cliente\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descricao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"prioridade\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"logs\",\"kind\":\"object\",\"type\":\"PedidoLog\",\"relationName\":\"PedidoToPedidoLog\"}],\"dbName\":null},\"PedidoLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pedidoId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pedido\",\"kind\":\"object\",\"type\":\"Pedido\",\"relationName\":\"PedidoToPedidoLog\"},{\"name\":\"acao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"detalhes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"usuario\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Pedido\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cliente\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descricao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"prioridade\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"logs\",\"kind\":\"object\",\"type\":\"PedidoLog\",\"relationName\":\"PedidoToPedidoLog\"}],\"dbName\":null},\"PedidoLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pedidoId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pedido\",\"kind\":\"object\",\"type\":\"Pedido\",\"relationName\":\"PedidoToPedidoLog\"},{\"name\":\"acao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"detalhes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"usuario\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Chamado\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"titulo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descricao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"prioridade\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cliente\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"tecnico\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"ordensServico\",\"kind\":\"object\",\"type\":\"OrdemServico\",\"relationName\":\"ChamadoToOrdemServico\"}],\"dbName\":null},\"OrdemServico\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"numero\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"chamadoId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"cliente\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descricao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"valorMaoObra\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"observacoes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"chamado\",\"kind\":\"object\",\"type\":\"Chamado\",\"relationName\":\"ChamadoToOrdemServico\"},{\"name\":\"itensUsados\",\"kind\":\"object\",\"type\":\"ItemOS\",\"relationName\":\"ItemOSToOrdemServico\"}],\"dbName\":null},\"ItemOS\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"osId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"itemEstoqueId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"quantidade\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"valorUnitario\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"os\",\"kind\":\"object\",\"type\":\"OrdemServico\",\"relationName\":\"ItemOSToOrdemServico\"},{\"name\":\"item\",\"kind\":\"object\",\"type\":\"ItemEstoque\",\"relationName\":\"ItemEstoqueToItemOS\"}],\"dbName\":null},\"ItemEstoque\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"codigo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nome\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descricao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"categoria\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"quantidade\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"minimo\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"valorUnit\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"fornecedor\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"localizacao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"itensOS\",\"kind\":\"object\",\"type\":\"ItemOS\",\"relationName\":\"ItemEstoqueToItemOS\"}],\"dbName\":null},\"Locacao\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"equipamento\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descricao\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cliente\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dataInicio\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"dataFim\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"valorMensal\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"valorTotal\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"observacoes\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
       getRuntime: async () => require('./query_compiler_bg.js'),

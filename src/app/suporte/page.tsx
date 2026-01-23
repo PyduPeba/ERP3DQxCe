@@ -1,68 +1,98 @@
 import DashboardLayout from "../components/layout/DashboardLayout";
 import Link from "next/link";
-import { Wrench, ClipboardList, Package, Clock, BarChart3, Users, TrendingUp, AlertTriangle } from "lucide-react";
-import { prisma } from "../lib/prisma";
+import { Wrench, ClipboardList, Package, Clock, BarChart3, Users, TrendingUp, AlertTriangle, Monitor } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
 export default async function SuporteDashboard() {
-  // Buscar estatísticas
-  const [chamadosAbertos, osAndamento, itensEstoque, locacoesAtivas] = await Promise.all([
-    prisma.chamado.count({ where: { status: { in: ["aberto", "em_andamento"] } } }),
-    prisma.ordemServico.count({ where: { status: { in: ["pendente", "em_andamento"] } } }),
-    prisma.itemEstoque.count(),
-    prisma.locacao.count({ where: { status: "ativo" } }),
-  ]);
+    // Buscar estatísticas com fallback
+    let chamadosAbertos = 0;
+    let osAndamento = 0;
+    let itensEstoque = 0;
+    let locacoesAtivas = 0;
+    let itensEstoqueBaixo = 0;
+    let ativosATI = 0;
 
-  // Itens com estoque baixo
-  const itensEstoqueBaixo = await prisma.itemEstoque.count({
-    where: {
-      quantidade: {
-        lte: prisma.itemEstoque.fields.minimo,
-      },
-    },
-  });
+    try {
+        const models = Object.keys(prisma).filter(k => !k.startsWith("_"));
+        console.log("Prisma Models Available:", models);
+        
+        const countSafe = async (model: any, where?: any) => {
+            try {
+                if (model && typeof model.count === "function") {
+                    return await model.count(where ? { where } : {});
+                }
+                return 0;
+            } catch (e) {
+                console.error("Error counting model:", e);
+                return 0;
+            }
+        };
 
-  const modules = [
-    { 
-      name: "Helpdesk", 
-      desc: "Suporte Técnico e Chamados", 
-      icon: Wrench, 
-      color: "bg-blue-500",
-      href: "/suporte/helpdesk",
-      stat: `${chamadosAbertos} abertos`
-    },
-    { 
-      name: "Ordens de Serviço", 
-      desc: "Gestão de OS e Peças", 
-      icon: ClipboardList, 
-      color: "bg-emerald-500",
-      href: "/suporte/os",
-      stat: `${osAndamento} em andamento`
-    },
-    { 
-      name: "Controle de Estoque", 
-      desc: "Entradas, Saídas e Inventário", 
-      icon: Package, 
-      color: "bg-amber-500",
-      href: "/suporte/estoque",
-      stat: `${itensEstoque} itens`
-    },
-    { 
-      name: "Locação", 
-      desc: "Contratos e Equipamentos", 
-      icon: Clock, 
-      color: "bg-purple-500",
-      href: "/suporte/locacao",
-      stat: `${locacoesAtivas} ativos`
-    },
-    { 
-      name: "Relatórios", 
-      desc: "Dashboards e Métricas", 
-      icon: BarChart3, 
-      color: "bg-gray-500",
-      href: "/suporte/relatorios",
-      stat: "Visualizar"
-    },
-  ];
+        [chamadosAbertos, osAndamento, itensEstoque, locacoesAtivas, ativosATI] = await Promise.all([
+            countSafe(prisma.chamado, { status: { in: ["aberto", "em_andamento"] } }),
+            countSafe(prisma.ordemServico, { status: { in: ["pendente", "em_andamento"] } }),
+            countSafe(prisma.itemEstoque),
+            countSafe(prisma.contratoLocacao, { status: "ATIVO" }),
+            countSafe(prisma.ativoInterno)
+        ]);
+
+        // Itens com estoque baixo
+        const allItens = await prisma.itemEstoque.findMany({ select: { quantidade: true, minimo: true } });
+        itensEstoqueBaixo = allItens.filter((i: any) => i.quantidade <= i.minimo).length;
+    } catch (error) {
+        console.error("Erro ao buscar estatísticas:", error);
+    }
+
+    const modules = [
+        { 
+            name: "Helpdesk", 
+            desc: "Suporte Técnico e Chamados", 
+            icon: Wrench, 
+            color: "bg-blue-500",
+            href: "/suporte/helpdesk",
+            stat: `${chamadosAbertos} abertos`
+        },
+        { 
+            name: "Ordens de Serviço", 
+            desc: "Gestão de OS e Peças", 
+            icon: ClipboardList, 
+            color: "bg-emerald-500",
+            href: "/suporte/os",
+            stat: `${osAndamento} em andamento`
+        },
+        { 
+            name: "Assistência Interna (ATI)", 
+            desc: "Ativos e Manutenção Interna", 
+            icon: Monitor, 
+            color: "bg-indigo-600",
+            href: "/suporte/ati",
+            stat: `${ativosATI} ativos`
+        },
+        { 
+            name: "Controle de Estoque", 
+            desc: "Entradas, Saídas e Inventário", 
+            icon: Package, 
+            color: "bg-amber-500",
+            href: "/suporte/estoque",
+            stat: `${itensEstoque} itens`
+        },
+        { 
+            name: "Locação", 
+            desc: "Contratos e Equipamentos", 
+            icon: Clock, 
+            color: "bg-purple-500",
+            href: "/suporte/locacao",
+            stat: `${locacoesAtivas} ativos`
+        },
+        { 
+            name: "Relatórios", 
+            desc: "Dashboards e Métricas", 
+            icon: BarChart3, 
+            color: "bg-gray-500",
+            href: "/suporte/relatorios",
+            stat: "Visualizar"
+        },
+    ];
 
   const stats = [
     { label: "Chamados Abertos", value: chamadosAbertos, icon: Wrench, color: "text-blue-600", bg: "bg-blue-100" },

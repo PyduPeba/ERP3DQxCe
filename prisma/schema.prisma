@@ -1,11 +1,10 @@
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "client"
-  output     = "./generated-client"
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Pedido {
@@ -39,28 +38,79 @@ model Chamado {
   descricao  String
   prioridade String   @default("media") // baixa, media, alta, urgente
   status     String   @default("aberto") // aberto, em_andamento, resolvido, fechado
-  cliente    String? // Nome do cliente
+  
+  // Novos campos avançados
+  tipoAtendimento String   @default("remoto") // "remoto", "presencial"
+  categoria       String?  // "software", "hardware", "rede", "impressora", etc.
+  equipamento     String?
+  numeroSerie     String?
+  patrimonio      String?  // Patrimônio / Tombo do Cliente
+  anexos          String?
+  sla             DateTime?
+  
+  clienteId       Int
+  cliente         Cliente @relation(fields: [clienteId], references: [id])
+  
+  departamentoId  Int?
+  departamento    Departamento? @relation(fields: [departamentoId], references: [id])
+  
   tecnico    String? // Nome do técnico responsável
+  
+  solucao         String?
+  fechadoEm       DateTime?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   ordensServico OrdemServico[]
 }
 
+// ============================================
+// MÓDULO DE AUDITORIA (LOGS)
+// ============================================
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  entityType  String   // TICKET, OS, CLIENT, STOCK
+  entityId    Int
+  action      String   // CREATE, UPDATE, DELETE, STATUS_CHANGE
+  userId      Int?
+  userName    String?  // Nome do usuário no momento da ação
+  oldValue    String?  // JSON string
+  newValue    String?  // JSON string
+  timestamp   DateTime @default(now())
+}
+
 model OrdemServico {
   id           Int      @id @default(autoincrement())
   numero       String   @unique
   chamadoId    Int?
+  clienteId    Int?
   cliente      String?
+  clienteObj   Cliente? @relation(fields: [clienteId], references: [id])
+  
+  departamentoId Int?
+  departamento   Departamento? @relation(fields: [departamentoId], references: [id])
+  
   descricao    String
   status       String   @default("pendente") // pendente, em_andamento, concluido, cancelado
   valorMaoObra Float?
   observacoes  String?
+  
+  // Novos campos avançados
+  tecnicoResponsavel String?
+  dataInicio        DateTime?
+  dataFim           DateTime?
+  dataEncerramento  DateTime?
+  laudoTecnico      String?
+  assinatura        String?
+  
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   chamado     Chamado? @relation(fields: [chamadoId], references: [id])
   itensUsados ItemOS[]
+  anexos      Anexo[]
 }
 
 model ItemOS {
@@ -74,34 +124,388 @@ model ItemOS {
   item ItemEstoque  @relation(fields: [itemEstoqueId], references: [id])
 }
 
+model Anexo {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  url       String   // Base64 or URL
+  tipo      String   // "image/png", "application/pdf"
+  osId      Int
+  os        OrdemServico @relation(fields: [osId], references: [id])
+  createdAt DateTime @default(now())
+}
+
 model ItemEstoque {
   id          Int      @id @default(autoincrement())
-  codigo      String?  @unique
+  codigo      String?  @unique // Código interno customizável
+  codigoBarras String? @unique // EAN/UPC
   nome        String
   descricao   String?
+  marca       String?
+  modelo      String?
   categoria   String? // pecas, ferramentas, consumiveis, etc
+  unidade     String  @default("un") // un, kg, m, l, cx
+  
+  // Fotos do Catálogo
+  fotos       String[] @default([])
+  
+  // Controle Especial
+  rastreavel  Boolean  @default(false) // Se este item é controlado por serial/patrimônio
+  
+  // Estoque
   quantidade  Int      @default(0)
   minimo      Int      @default(0)
-  valorUnit   Float?
-  fornecedor  String?
+  
+  // Financeiro
+  custoMedio  Float?
+  valorVenda  Float?   @map("valorUnit")
+  
+  fornecedorPrincipal  String?
   localizacao String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   itensOS ItemOS[]
+  movimentacoes MovimentacaoEstoque[]
+  itensSerializados Equipamento[]
+  itensOSInterna ItemOSInterna[]
 }
 
-model Locacao {
+model MovimentacaoEstoque {
+  id            Int      @id @default(autoincrement())
+  itemId        Int
+  item          ItemEstoque @relation(fields: [itemId], references: [id])
+  tipo          String   // ENTRADA, SAIDA, AJUSTE
+  quantidade    Int      // Sempre positivo aqui, a lógica define sinal
+  origem        String   // COMPRA, OS, PERDA, INVENTARIO
+  docReferencia String?  // Nota Fiscal, ID da OS, etc
+  observacoes   String?
+  userId        Int?     // Responsável (se houver user session)
+  usuario       String?  // Nome do responsável
+  createdAt     DateTime @default(now())
+}
+
+// ============================================
+// MÓDULO DE LOCAÇÃO DE EQUIPAMENTOS
+// ============================================
+
+model Equipamento {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  fotoUrl         String? // Deprecated, use fotos
+  fotos           String[] @default([]) // Multiple photos
+  descricao       String?
+  marca           String?
+  modelo          String?
+  numeroSerie     String?  @unique
+  codigoPatrimonio String? @unique // Tombamento/Asset Tag
+  
+  // Status do Bem
+  status          String   @default("DISPONIVEL") // DISPONIVEL, LOCADO, MANUTENCAO, APOSENTADO
+  condicao        String?  // Novo, Bom, Usado, Danificado
+  
+  // Financeiro do Ativo
+  valorAquisicao  Float?
+  dataAquisicao   DateTime?
+  valorLocacaoBase Float?  // Sugestão de preço para locação
+  
+  // Histórico
+  itensContrato   ItemContrato[]
+  
+  // Integração com Estoque
+  itemEstoqueId   Int?
+  itemEstoque     ItemEstoque? @relation(fields: [itemEstoqueId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ContratoLocacao {
+  id              Int      @id @default(autoincrement())
+  
+  // Clientes e Vínculos
+  clienteId       Int
+  cliente         Cliente  @relation(fields: [clienteId], references: [id])
+  osOrigemId      Int?     // Se nasceu de uma OS (ex: empréstimo temporário)
+  
+  // Datas e Prazos
+  dataInicio      DateTime
+  dataFim         DateTime
+  dataDevolucao   DateTime? // Real
+  
+  // Financeiro
+  valorTotalMensal Float
+  diaVencimento   Int      @default(5)
+  
+  // Regras
+  status          String   @default("ATIVO") // ATIVO, FINALIZADO, CANCELADO, ATRASADO
+  renovacaoAuto   Boolean  @default(false)
+  multaAtraso     Float?   // % ou Valor Fixo definido no contrato
+  
+  itens           ItemContrato[]
+  
+  observacoes     String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ItemContrato {
+  id              Int             @id @default(autoincrement())
+  contratoId      Int
+  contrato        ContratoLocacao @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+  
+  equipamentoId   Int
+  equipamento     Equipamento     @relation(fields: [equipamentoId], references: [id])
+  
+  valorUnitario   Float
+  
+  @@unique([contratoId, equipamentoId]) // Um equipamento só pode entrar uma vez no mesmo contrato
+}
+
+// ============================================
+// MÓDULO DE USUÁRIOS E PERFIS (RBAC)
+// ============================================
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  ATENDENTE
+  TECNICO
+  FINANCEIRO
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  usuario       String   @unique
+  senha         String   // Hashed
+  perfil        Role     @default(ATENDENTE)
+  especialidade String?  // Para Técnicos
+  email         String?  @unique
+  telefone      String?
+  status        Boolean  @default(true) // Ativo/Inativo
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // ATI Relations
+  ordensInternasSolicitadas OSInterna[] @relation("SolicitanteOS")
+  ordensInternasTecnicas    OSInterna[] @relation("TecnicoOS")
+  movimentacoesAtivoRecebidas MovimentacaoAtivo[] @relation("MovimentacaoUsuario")
+  movimentacoesAtivoProcessadas MovimentacaoAtivo[] @relation("MovimentacaoTecnico")
+}
+
+// ============================================
+// MÓDULO DE CLIENTES (CRM)
+// ============================================
+
+model Cliente {
   id          Int      @id @default(autoincrement())
-  equipamento String
-  descricao   String?
-  cliente     String?
-  dataInicio  DateTime
-  dataFim     DateTime
-  valorMensal Float
-  valorTotal  Float?
-  status      String   @default("ativo") // ativo, vencido, finalizado, cancelado
+  tipo        String   @default("PF") // PF or PJ
+  nome        String   // Nome ou Razão Social
+  nomeFantasia String?
+  cpfCnpj     String?   @unique
+  ie          String?  // Inscrição Estadual (Opcional)
+  
+  // Contato
+  telefone    String?
+  whatsapp    String?
+  email       String?
+  
+  // Endereço
+  cep         String?
+  logradouro  String?
+  numero      String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  
+  // Controle
+  status      Boolean  @default(true)
   observacoes String?
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  chamados    Chamado[]
+  departamentos Departamento[]
+  contratos   ContratoLocacao[]
+  relatorios  RelatorioMensal[]
+  ativosATI   AtivoInterno[]
+  ordensServico OrdemServico[]
+}
+
+model Departamento {
+  id          Int      @id @default(autoincrement())
+  nome        String   // Ex: "Recursos Humanos", "TI"
+  responsavel String?
+  email       String?
+  clienteId   Int
+  cliente     Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  
+  chamados    Chamado[]
+  os          OrdemServico[]
+  ativosATI   AtivoInterno[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+// ============================================
+// MÓDULO DE ASSISTÊNCIA TÉCNICA INTERNA (ATI)
+// ============================================
+
+model AtivoInterno {
+  id               Int      @id @default(autoincrement())
+  nome             String
+  descricao        String?
+  categoria        String   // TI, Moveis, Veiculos, Infra
+  numeroPatrimonio String   @unique
+  numeroSerie      String?
+  
+  dataAquisicao    DateTime?
+  valorAquisicao   Float?
+  
+  localizacao      String?  // Setor/Sala
+  status           String   @default("OPERACIONAL") // OPERACIONAL, MANUTENCAO, INATIVO
+  
+  // Vínculo com cliente (para PC de cliente/órgão público)
+  tipoPropriedade  String   @default("INTERNO") // INTERNO ou CLIENTE
+  clienteId        Int?
+  cliente          Cliente? @relation(fields: [clienteId], references: [id])
+  
+  departamentoId   Int?
+  departamento     Departamento? @relation(fields: [departamentoId], references: [id])
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  ordensServico    OSInterna[]
+  movimentacoes    MovimentacaoAtivo[]
+}
+
+model OSInterna {
+  id                Int      @id @default(autoincrement())
+  numero            String   @unique // Numeração própria ex: ATI-2024-001
+  
+  ativoId           Int
+  ativo             AtivoInterno @relation(fields: [ativoId], references: [id])
+  
+  solicitanteId     Int
+  solicitante       User     @relation("SolicitanteOS", fields: [solicitanteId], references: [id])
+  
+  tecnicoId         Int?
+  tecnico           User?    @relation("TecnicoOS", fields: [tecnicoId], references: [id])
+  
+  descricaoProblema String
+  laudoTecnico      String?
+  
+  status            String   @default("ABERTA") // ABERTA, EM_EXECUCAO, CONCLUIDA, CANCELADA
+  custoTotal        Float    @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  itensUsados       ItemOSInterna[]
+}
+
+model ItemOSInterna {
+  id                 Int      @id @default(autoincrement())
+  osId               Int
+  os                 OSInterna @relation(fields: [osId], references: [id], onDelete: Cascade)
+  
+  itemEstoqueId      Int
+  item               ItemEstoque @relation(fields: [itemEstoqueId], references: [id])
+  
+  quantidade         Int
+  valorCustoNoMomento Float?
+
+  @@unique([osId, itemEstoqueId])
+}
+
+model MovimentacaoAtivo {
+  id                Int      @id @default(autoincrement())
+  ativoId           Int
+  ativo             AtivoInterno @relation(fields: [ativoId], references: [id])
+  
+  tipo              String   // ENTREGA, DEVOLUCAO
+  
+  usuarioId         Int      // Quem recebeu ou devolveu
+  usuario           User     @relation("MovimentacaoUsuario", fields: [usuarioId], references: [id])
+  
+  tecnicoId         Int      // Quem processou a movimentação
+  tecnico           User     @relation("MovimentacaoTecnico", fields: [tecnicoId], references: [id])
+  
+  protocoloUrl      String?
+  condicaoNoMomento String?
+  
+  createdAt         DateTime @default(now())
+}
+
+// ============================================
+// MÓDULO DE RELATÓRIOS E DOCUMENTAÇÃO
+// ============================================
+
+model TemplateServico {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descricao   String   
+  categoria   String?  
+  createdAt   DateTime @default(now())
+}
+
+model RelatorioMensal {
+  id            Int      @id @default(autoincrement())
+  numero        String   @unique
+  mesReferencia Int
+  anoReferencia Int
+  
+  clienteId     Int
+  cliente       Cliente  @relation(fields: [clienteId], references: [id])
+  
+  tipoTemplate  String   @default("PADRAO") // PADRAO, DETALHADO, SIMPLIFICADO
+  observacoes   String?
+  
+  status        String   @default("RASCUNHO") // RASCUNHO, FINALIZADO
+  
+  itens         ItemRelatorio[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ItemRelatorio {
+  id               Int             @id @default(autoincrement())
+  relatorioId      Int
+  relatorio        RelatorioMensal @relation(fields: [relatorioId], references: [id], onDelete: Cascade)
+  
+  data             DateTime
+  descricaoServico String
+  equipamento      String?
+  tombo            String?
+  status           String?
+  fotos            String[]  @default([])
+  
+  createdAt        DateTime @default(now())
+}
+
+model ModulePermission {
+  id        Int      @id @default(autoincrement())
+  role      Role
+  module    String   // e.g., PEDIDOS, ESTUDIO, GESTAO, LOCACAO, CONFIG
+  
+  canView   Boolean  @default(false)
+  canCreate Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  canDelete Boolean  @default(false)
+
+  @@unique([role, module])
+}
+
+model SystemConfig {
+  id                   Int      @id @default(1)
+  sessionTimeout       Int      @default(30) // Minutes
+  passwordRotationDays Int      @default(90) // Days
+  brandingText         String   @default("ERP 3D")
+  brandingColor        String   @default("#f97316") // orange-500
+  logoUrl              String?
+  updatedAt            DateTime @updatedAt
 }

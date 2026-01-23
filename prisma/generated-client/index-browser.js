@@ -114,6 +114,9 @@ Prisma.NullTypes = NullTypes
  */
 
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
@@ -136,9 +139,77 @@ exports.Prisma.PedidoLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ChamadoScalarFieldEnum = {
+  id: 'id',
+  titulo: 'titulo',
+  descricao: 'descricao',
+  prioridade: 'prioridade',
+  status: 'status',
+  cliente: 'cliente',
+  tecnico: 'tecnico',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrdemServicoScalarFieldEnum = {
+  id: 'id',
+  numero: 'numero',
+  chamadoId: 'chamadoId',
+  cliente: 'cliente',
+  descricao: 'descricao',
+  status: 'status',
+  valorMaoObra: 'valorMaoObra',
+  observacoes: 'observacoes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ItemOSScalarFieldEnum = {
+  id: 'id',
+  osId: 'osId',
+  itemEstoqueId: 'itemEstoqueId',
+  quantidade: 'quantidade',
+  valorUnitario: 'valorUnitario'
+};
+
+exports.Prisma.ItemEstoqueScalarFieldEnum = {
+  id: 'id',
+  codigo: 'codigo',
+  nome: 'nome',
+  descricao: 'descricao',
+  categoria: 'categoria',
+  quantidade: 'quantidade',
+  minimo: 'minimo',
+  valorUnit: 'valorUnit',
+  fornecedor: 'fornecedor',
+  localizacao: 'localizacao',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LocacaoScalarFieldEnum = {
+  id: 'id',
+  equipamento: 'equipamento',
+  descricao: 'descricao',
+  cliente: 'cliente',
+  dataInicio: 'dataInicio',
+  dataFim: 'dataFim',
+  valorMensal: 'valorMensal',
+  valorTotal: 'valorTotal',
+  status: 'status',
+  observacoes: 'observacoes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
 };
 
 exports.Prisma.NullsOrder = {
@@ -149,7 +220,12 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   Pedido: 'Pedido',
-  PedidoLog: 'PedidoLog'
+  PedidoLog: 'PedidoLog',
+  Chamado: 'Chamado',
+  OrdemServico: 'OrdemServico',
+  ItemOS: 'ItemOS',
+  ItemEstoque: 'ItemEstoque',
+  Locacao: 'Locacao'
 };
 
 /**

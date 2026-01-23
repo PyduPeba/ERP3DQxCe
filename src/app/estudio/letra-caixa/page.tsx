@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import ThreeScene from "../components/ThreeScene";
 import * as THREE from "three";
 import { STLLoader, FontLoader, TextGeometry } from "three-stdlib";
@@ -280,7 +281,8 @@ export default function LetraCaixaPage() {
     };
 
     return (
-        <DashboardLayout>
+        <PermissionGuard module="ESTUDIO">
+            <DashboardLayout>
             <div className="flex flex-col h-[calc(100vh-8rem)]">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
@@ -441,5 +443,6 @@ export default function LetraCaixaPage() {
                 </div>
             </div>
         </DashboardLayout>
+        </PermissionGuard>
     );
 }
