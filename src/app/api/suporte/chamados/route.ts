@@ -47,7 +47,7 @@ export async function POST(req: Request) {
                 equipamento: data.equipamento,
                 numeroSerie: data.numeroSerie,
                 patrimonio: data.patrimonio,
-                clienteId: data.clienteId ? Number(data.clienteId) : null,
+                clienteId: data.clienteId ? Number(data.clienteId) : undefined,
             },
         });
         return NextResponse.json(chamado);
@@ -81,7 +81,7 @@ export async function PUT(req: Request) {
                 status: data.status,
                 solucao: data.solucao,
                 tecnico: data.tecnico || (session?.perfil === 'TECNICO' ? session.nome : undefined),
-                fechadoEm: data.status === 'fechado' ? new Date() : null,
+                fechadoEm: data.status === 'fechado' ? new Date() : undefined,
             }
         });
 

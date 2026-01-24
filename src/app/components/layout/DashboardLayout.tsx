@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -42,8 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [isLocacaoOpen, setIsLocacaoOpen] = useState(pathname.startsWith('/suporte/locacao'));
     
     // Auth & Permissions
-    const [user, setUser] = useState<any>(null);
-    const [permissions, setPermissions] = useState<any[]>([]);
+    const { user, permissions, loading: permLoading, canDo } = usePermissions();
     const [systemConfig, setSystemConfig] = useState<any>(null);
 
     useEffect(() => {
@@ -59,22 +59,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, []);
 
     useEffect(() => {
-        fetch("/api/auth/me")
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.user) {
-                    setUser(data.user);
-                } else {
-                     router.push("/login");
-                }
-            })
-            .catch(() => {});
-
-        // Fetch permissions matrix
-        fetch("/api/config/permissions")
-            .then(res => res.json())
-            .then(data => setPermissions(Array.isArray(data) ? data : []))
-            .catch(() => {});
+        if (!permLoading && !user) {
+            router.push("/login");
+        }
 
         // Fetch system config (branding)
         fetch("/api/config/system")
@@ -83,15 +70,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 if (data && !data.error) setSystemConfig(data);
             })
             .catch(() => {});
-    }, []);
+    }, [user, permLoading, router]);
 
-    const canAccess = (module: string) => {
-        if (!user) return false;
-        if (user.perfil === 'SUPERADMIN') return true;
-        
-        const p = permissions.find(perm => perm.role === user.perfil && perm.module === module);
-        return p ? p.canView : false;
-    };
+    const canAccess = (module: string) => canDo(module, 'canView');
 
     const handleLogout = async () => {
         try {
@@ -141,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         'CLIENTES',
         'ESTUDIO',
         'GESTAO',
-        'LOCAÇÃO',
+        'LOCACAO',
         'CONFIG'
     ].filter(m => canAccess(m)).length;
 
@@ -307,7 +288,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     )}
 
                     {/* LOCAÇÃO SECTION */}
-                    {canAccess('LOCAÇÃO') && (
+                    {canAccess('LOCACAO') && (
                         <div className="pt-4 border-t border-gray-800 mt-4">
                             <button
                                 onClick={() => setIsLocacaoOpen(!isLocacaoOpen)}

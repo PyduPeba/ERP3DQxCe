@@ -65,10 +65,7 @@ export async function POST(req: Request) {
                         await tx.itemEstoque.update({
                             where: { id: existing.id },
                             data: {
-                                ...payload,
-                                // Prevent overwriting stock if it's an update? 
-                                // Let's Assume Import overrides stock if provided, creating an Adjustment log.
-                                quantity: payload.quantidade
+                                ...payload
                             }
                         });
 

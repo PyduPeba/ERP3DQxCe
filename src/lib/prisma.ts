@@ -6,11 +6,12 @@ const globalForPrisma = global as unknown as {
     prisma_v23: PrismaClient | undefined;
 };
 
-const connectionString = "postgresql://admin:password123@localhost:5433/erp_db";
+const connectionString = process.env.DATABASE_URL;
 
 console.log("Variável de Ambiente DATABASE_URL:", connectionString ? "Configurada" : "AUSENTE");
 if (!connectionString) {
     console.error("ERRO CRÍTICO: DATABASE_URL não está definida!");
+    throw new Error("DATABASE_URL não está configurada no arquivo .env");
 }
 
 const pool = new Pool({ connectionString });

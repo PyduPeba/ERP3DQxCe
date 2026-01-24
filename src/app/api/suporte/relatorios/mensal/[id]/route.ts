@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         const relatorio = await prisma.relatorioMensal.findUnique({
-            where: { id: Number(params.id) },
+            where: { id: Number(idParam) },
             include: {
                 itens: {
                     orderBy: { data: "asc" }
@@ -21,10 +22,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         await prisma.relatorioMensal.delete({
-            where: { id: Number(params.id) }
+            where: { id: Number(idParam) }
         });
         return NextResponse.json({ success: true });
     } catch (error) {

@@ -42,10 +42,6 @@ export async function POST(req: Request) {
             // 3. Update Item
             const updatedItem = await tx.itemEstoque.update({
                 where: { id: itemId },
-                data: { quantity: newQuantity }
-                // Warning: Prisma field might be 'quantidade' in Portuguese. Checking Schema...
-                // Schema says: quantidade Int @default(0)
-                // Fix:
                 data: { quantidade: newQuantity }
             });
 

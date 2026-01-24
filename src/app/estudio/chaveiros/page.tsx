@@ -38,7 +38,7 @@ export default function ChaveirosPage() {
                     bevelSize: 0.3,
                     bevelOffset: 0,
                     bevelSegments: 5
-                });
+                } as any);
                 textGeo.computeBoundingBox();
                 const centerOffset = -0.5 * (textGeo.boundingBox!.max.x - textGeo.boundingBox!.min.x);
                 

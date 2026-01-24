@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const { id: idParam } = await params;
+        const id = Number(idParam);
         const ativo = await prisma.ativoInterno.findUnique({
             where: { id },
             include: {
@@ -33,9 +34,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const { id: idParam } = await params;
+        const id = Number(idParam);
         const data = await req.json();
 
         const ativo = await prisma.ativoInterno.update({
@@ -60,9 +62,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const { id: idParam } = await params;
+        const id = Number(idParam);
         await prisma.ativoInterno.delete({ where: { id } });
         return NextResponse.json({ message: "Ativo excluído com sucesso" });
     } catch (error) {

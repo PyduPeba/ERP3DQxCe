@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-        const locacoes = await prisma.locacao.findMany({
+        const locacoes = await prisma.contratoLocacao.findMany({
             orderBy: { createdAt: "desc" },
+            include: { cliente: true, itens: { include: { equipamento: true } } }
         });
         return NextResponse.json(locacoes);
     } catch (error) {
@@ -15,21 +16,19 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const data = await req.json();
-        const locacao = await prisma.locacao.create({
+        const locacao = await prisma.contratoLocacao.create({
             data: {
-                equipamento: data.equipamento,
-                descricao: data.descricao,
-                cliente: data.cliente,
+                clienteId: Number(data.clienteId || data.cliente),
                 dataInicio: new Date(data.dataInicio),
                 dataFim: new Date(data.dataFim),
-                valorMensal: data.valorMensal,
-                valorTotal: data.valorTotal,
-                status: data.status || "ativo",
-                observacoes: data.observacoes,
+                valorTotalMensal: Number(data.valorTotalMensal || data.valorMensal || 0),
+                status: (data.status || "ATIVO").toUpperCase(),
+                observacoes: data.observacoes || `${data.equipamento || ''} - ${data.descricao || ''}`,
             },
         });
         return NextResponse.json(locacao);
     } catch (error) {
+        console.error("ERRO POST LOCACAO:", error);
         return NextResponse.json({ error: "Erro ao criar locação" }, { status: 500 });
     }
 }

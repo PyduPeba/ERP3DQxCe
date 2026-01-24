@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         const item = await prisma.itemEstoque.findUnique({
-            where: { id: Number(params.id) },
+            where: { id: Number(idParam) },
             include: {
                 itensSerializados: true
             }
@@ -16,11 +17,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         const data = await req.json();
         const item = await prisma.itemEstoque.update({
-            where: { id: Number(params.id) },
+            where: { id: Number(idParam) },
             data: {
                 codigo: data.codigo,
                 codigoBarras: data.codigoBarras,
@@ -46,10 +48,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         await prisma.itemEstoque.delete({
-            where: { id: Number(params.id) },
+            where: { id: Number(idParam) },
         });
         return NextResponse.json({ message: "Produto excluído com sucesso" });
     } catch (error) {

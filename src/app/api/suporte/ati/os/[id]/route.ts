@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const { id: idParam } = await params;
+        const id = Number(idParam);
         const os = await prisma.oSInterna.findUnique({
             where: { id },
             include: {
@@ -23,9 +24,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const osId = Number(params.id);
+        const { id: idParam } = await params;
+        const osId = Number(idParam);
         const data = await req.json();
 
         // 1. Handle Closing OS (and Stock Deduction if items provided)

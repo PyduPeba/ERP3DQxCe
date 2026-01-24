@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         const chamado = await prisma.chamado.findUnique({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(idParam) },
             include: {
                 ordensServico: true,
             },
@@ -18,11 +19,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         const data = await req.json();
         const chamado = await prisma.chamado.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(idParam) },
             data: {
                 titulo: data.titulo,
                 descricao: data.descricao,
@@ -38,10 +40,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: idParam } = await params;
         await prisma.chamado.delete({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(idParam) },
         });
         return NextResponse.json({ success: true });
     } catch (error) {

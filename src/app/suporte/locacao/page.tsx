@@ -51,7 +51,7 @@ export default function LocacaoDashboard() {
   if (loading) return <div className="p-8 text-center text-slate-400">Carregando indicadores...</div>;
 
   return (
-    <PermissionGuard module="LOCAÇÃO">
+    <PermissionGuard module="LOCACAO">
         <DashboardLayout>
             <div className="p-6 max-w-7xl mx-auto space-y-8">
               <div>

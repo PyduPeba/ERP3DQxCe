@@ -11,12 +11,19 @@ export async function signSession(payload: any) {
         .sign(key);
 }
 
-export async function verifySession(token: string) {
+export interface SessionPayload {
+    sub: string;
+    nome: string;
+    perfil: string;
+    [key: string]: any;
+}
+
+export async function verifySession(token: string): Promise<SessionPayload | null> {
     try {
         const { payload } = await jwtVerify(token, key, {
             algorithms: ["HS256"],
         });
-        return payload;
+        return payload as unknown as SessionPayload;
     } catch (error) {
         return null;
     }
