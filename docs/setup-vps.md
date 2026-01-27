@@ -41,8 +41,11 @@ sudo npm install -g pm2
 
 ```bash
 # Clonar o repositório
-git clone <URL_DO_REPOSITORIO> ~/erp-web
+git clone https://github.com/PyduPeba/ERP3DQxCe.git ~/erp-web
 cd ~/erp-web
+
+# Mudar para a branch específica
+git checkout feature/mvp-suporte-os-estoque-locacao
 
 # Instalar dependências
 npm install
@@ -56,7 +59,7 @@ nano .env
 ```
 Exemplo de configuração mínima:
 ```env
-DATABASE_URL="postgresql://admin:password123@localhost:5433/erp_db?schema=public"
+DATABASE_URL="postgresql://admin:password123456!@localhost:5433/erp_db?schema=public"
 NEXTAUTH_SECRET="seu-secret-aqui"
 # Adicione outras variáveis necessárias do seu .env local
 ```

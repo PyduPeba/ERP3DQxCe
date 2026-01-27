@@ -25,7 +25,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Campos obrigatórios: ativoId, usuarioId, tecnicoId, tipo" }, { status: 400 });
         }
 
-        const move = await prisma.$transaction(async (tx) => {
+        const move = await prisma.$transaction(async (tx: any) => {
             // 1. Create movement
             const m = await tx.movimentacaoAtivo.create({
                 data: {

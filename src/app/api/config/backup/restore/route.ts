@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
         // 3. Database Restore
         // We use a transaction and raw SQL to truncate for speed and to avoid FK issues
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // Get all table names from the dump keys
             const tables = Object.keys(dumpData);
 

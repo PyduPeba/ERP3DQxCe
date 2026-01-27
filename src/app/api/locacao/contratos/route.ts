@@ -24,7 +24,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Cliente e Equipamentos são obrigatórios" }, { status: 400 });
         }
 
-        return await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx: any) => {
             // 1. Verify Equipment Availability
             for (const item of data.itens) {
                 const eq = await tx.equipamento.findUnique({ where: { id: item.id } });

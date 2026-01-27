@@ -27,7 +27,7 @@ export async function POST() {
         }
 
         // 3. Perform Reset
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // Get all models dynamically
             const prismaAny = (tx as any);
             const allKeys = Object.keys(prismaAny).filter(k => !k.startsWith('_') && !k.startsWith('$') && typeof prismaAny[k]?.findMany === 'function');

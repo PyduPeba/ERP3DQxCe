@@ -25,7 +25,7 @@ export async function POST(req: Request) {
                     continue;
                 }
 
-                await prisma.$transaction(async (tx) => {
+                await prisma.$transaction(async (tx: any) => {
                     // Prepare data
                     const codigo = item.codigo || item.code || undefined;
                     const codigoBarras = item.codigoBarras || item.ean || undefined;

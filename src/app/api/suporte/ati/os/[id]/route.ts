@@ -53,7 +53,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 async function handleOSCompletion(osId: number, data: any) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
         // Find existing OS
         const currentOS = await tx.oSInterna.findUnique({
             where: { id: osId },

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         const qtdInt = Math.abs(Number(quantidade));
 
         // Transaction to ensure consistency
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: any) => {
             // 1. Get current item state
             const item = await tx.itemEstoque.findUnique({ where: { id: Number(itemId) } });
             if (!item) throw new Error("Item não encontrado");

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         const count = await prisma.ordemServico.count();
         const numero = `OS-${String(count + 1).padStart(6, '0')}`;
 
-        return await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx: any) => {
             const os = await tx.ordemServico.create({
                 data: {
                     numero,
@@ -96,7 +96,7 @@ export async function PUT(req: Request) {
         });
         if (!currentOS) return NextResponse.json({ error: "OS não encontrada" }, { status: 404 });
 
-        return await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx: any) => {
             let updateData: any = {
                 cliente: data.cliente,
                 clienteId: data.clienteId ? Number(data.clienteId) : null,
