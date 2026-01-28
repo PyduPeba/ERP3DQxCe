@@ -96,7 +96,7 @@ export default function ContratosPage() {
   }
 
   return (
-    <PermissionGuard module="LOCAÇÃO">
+    <PermissionGuard module="LOCACAO">
       <DashboardLayout>
         <div className="p-6 max-w-7xl mx-auto space-y-6">
       

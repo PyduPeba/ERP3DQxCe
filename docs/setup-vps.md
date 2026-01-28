@@ -125,6 +125,9 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
+- [x] Fix Nginx configuration syntax and restart <!-- id: 9 -->
+- [/] Start application with PM2 and configure SSL <!-- id: 10 -->
+
 ## 10. SSL com Certbot
 
 ```bash
