@@ -20,20 +20,46 @@ sudo ufw allow 22022/tcp  # <--- SUA PORTA SSH CUSTOMIZADA
 sudo ufw enable
 ```
 
-## 2. Instalação do Painel de Gerenciamento (aaPanel)
+## 2. Instalação e Segurança do aaPanel
 
-Para evitar perder o acesso novamente, instalaremos o **aaPanel**. Ele oferece uma interface web para gerenciar o Firewall, Banco de Dados e Processos.
+O **aaPanel** será sua rede de segurança. Se o SSH falhar, você ainda terá controle total via web.
+
+### 2.1 Instalação
 
 ```bash
-# Comando de instalação do aaPanel (Ubuntu)
+# O instalador do aaPanel perguntará se você deseja ativar o SSL do painel (Lest Encrypt). 
+# Responda 'y' para segurança máxima.
 URL=https://www.aapanel.com/script/install_7.0_en.sh && if [ -f /usr/bin/curl ];then curl -sSO $URL;else wget -O install_7.0_en.sh $URL;fi;bash install_7.0_en.sh aapanel
 ```
-*Anote a URL, usuário e senha fornecidos no final da instalação.*
 
-**No aaPanel:**
-1. Vá em **Security**.
-2. Verifique se as portas `80`, `443` e `22022` estão na lista de "Accept".
-3. Vá em **App Store** e instale: `MySQL/PostgreSQL`, `Node.js Version Manager` e `Nginx`.
+> [!IMPORTANT]
+> **ANOTE AS INFORMAÇÕES FINAIS**: Ao terminar, o terminal exibirá:
+> - `Internet Address`: (Ex: http://129.121.35.47:8888/login_path)
+> - `Username` e `Password`
+> - **Porta do Painel**: Geralmente `8888` (ou uma aleatória gerada).
+
+### 2.2 Liberar Porta do Painel no Sistema
+
+Se o seu acesso SSH cair agora, é porque o firewall do SO bloqueou a porta do painel. **Libere-a imediatamente**:
+
+```bash
+# Se o painel estiver na porta 8888 (verifique no Log de instalação)
+sudo ufw allow 8888/tcp
+sudo ufw reload
+```
+
+### 2.3 Configurações de Segurança no Painel
+
+Assim que logar no aaPanel pela primeira vez:
+
+1.  **Mudar Caminho de Login**: Vá em `Settings` > `Security entrance`. Mude para algo secreto (ex: `/meu_painel_seguro`).
+2.  **Mudar Porta Padrão**: Mude a porta `8888` para uma customizada (ex: `45678`). *Não esqueça de liberar essa nova porta no `ufw` antes de salvar.*
+3.  **Vincular Domínio**: Se possível, vincule o painel a um subdomínio (ex: `painel.suportesolution.app.br`) e ative o SSL para o painel em `Settings` > `Panel SSL`.
+4.  **Instalar dependências**: No prompt inicial (vapt-vapt), instale:
+    - `Nginx 1.22+`
+    - `MySQL 8.0` ou `PostgreSQL 15`
+    - `PHP 8.1+` (opcional, necessário apenas para o aaPanel rodar certas ferramentas)
+    - `Node.js Version Manager` (na App Store)
 
 ## 3. Instalação do Node.js (v20+)
 
