@@ -96,16 +96,14 @@ pm2 save
 
 ```bash
 sudo apt install -y nginx
-
-# Criar arquivo de configuração
 sudo nano /etc/nginx/sites-available/erp-web
 ```
 
-Configuração sugerida:
+Cole a configuração abaixo (ajuste o domínio):
 ```nginx
 server {
     listen 80;
-    server_name seu-dominio.com;
+    server_name suportesolution.app.br;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -118,8 +116,8 @@ server {
 }
 ```
 
+Ative o site e reinicie o Nginx:
 ```bash
-# Ativar configuração e reiniciar nginx
 sudo ln -s /etc/nginx/sites-available/erp-web /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
