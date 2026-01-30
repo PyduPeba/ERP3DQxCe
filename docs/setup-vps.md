@@ -34,7 +34,7 @@ URL=https://www.aapanel.com/script/install_7.0_en.sh && if [ -f /usr/bin/curl ];
 
 > [!IMPORTANT]
 > **ANOTE AS INFORMAÇÕES FINAIS**: Ao terminar, o terminal exibirá:
-> - `Internet Address`: (Ex: http://129.121.35.47:8888/login_path)
+> - `Internet Address`: (Ex: http://MEUIP:8888/login_path)
 > - `Username` e `Password`
 > - **Porta do Painel**: Geralmente `8888` (ou uma aleatória gerada).
 
