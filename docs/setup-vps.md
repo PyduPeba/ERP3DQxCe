@@ -90,6 +90,9 @@ Crie o banco através do aaPanel (Database) ou via Docker:
 ```bash
 # Se usar Docker (opcional se usar o banco do aaPanel)
 sudo apt install -y docker-compose
+sudo systemctl enable docker  # <--- Garante que o Docker inicie no boot
+
+# Subir os containers (garanta que seu docker-compose.yml tenha 'restart: always')
 sudo docker compose up -d
 ```
 
