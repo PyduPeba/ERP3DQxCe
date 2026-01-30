@@ -34,10 +34,16 @@ export default async function SuporteDashboard() {
 
         // Contagens com status (Incase of capitalization issues, we check both or just ensure they exist)
         [chamadosAbertos, osAndamento, itensEstoque, locacoesAtivas, ativosATI] = await Promise.all([
-            countSafe(prisma.chamado, { status: { in: ["aberto", "em_andamento", "ABERTO", "EM_ANDAMENTO"] } }),
-            countSafe(prisma.ordemServico, { status: { in: ["pendente", "em_andamento", "PENDENTE", "EM_ANDAMENTO"] } }),
+            countSafe(prisma.chamado, { 
+                status: { in: ["aberto", "em_andamento", "pendente", "ABERTO", "EM_ANDAMENTO", "PENDENTE", "Aberto", "Pendente"] } 
+            }),
+            countSafe(prisma.ordemServico, { 
+                status: { in: ["pendente", "em_andamento", "PENDENTE", "EM_ANDAMENTO", "Pendente", "Em Andamento"] } 
+            }),
             countSafe(prisma.itemEstoque),
-            countSafe(prisma.contratoLocacao, { status: { in: ["ATIVO", "ativo"] } }),
+            countSafe(prisma.contratoLocacao, { 
+                status: { in: ["ATIVO", "ativo", "Ativo", "ATRASADO", "atrasado", "Atrasado"] } 
+            }),
             countSafe(prisma.ativoInterno)
         ]);
 
