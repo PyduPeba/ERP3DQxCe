@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Wrench, ClipboardList, Package, Clock, BarChart3, Users, TrendingUp, AlertTriangle, Monitor } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function SuporteDashboard() {
     // Buscar estatísticas e config do sistema
     let chamadosAbertos = 0;
@@ -33,7 +36,7 @@ export default async function SuporteDashboard() {
         };
 
         // Contagens com status (Incase of capitalization issues, we check both or just ensure they exist)
-        [chamadosAbertos, osAndamento, itensEstoque, locacoesAtivas, ativosATI] = await Promise.all([
+        const [cAbertos, osAnd, iEstoque, lAtivas, aATI] = await Promise.all([
             countSafe(prisma.chamado, { 
                 status: { in: ["aberto", "em_andamento", "pendente", "ABERTO", "EM_ANDAMENTO", "PENDENTE", "Aberto", "Pendente"] } 
             }),
@@ -46,6 +49,12 @@ export default async function SuporteDashboard() {
             }),
             countSafe(prisma.ativoInterno)
         ]);
+
+        chamadosAbertos = cAbertos;
+        osAndamento = osAnd;
+        itensEstoque = iEstoque;
+        locacoesAtivas = lAtivas;
+        ativosATI = aATI;
 
         // Itens com estoque baixo
         const allItens = await prisma.itemEstoque.findMany({ select: { quantidade: true, minimo: true } });

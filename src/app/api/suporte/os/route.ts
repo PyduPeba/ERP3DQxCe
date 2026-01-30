@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
     try {
@@ -65,6 +66,8 @@ export async function POST(req: Request) {
                     });
                 }
             }
+            revalidatePath("/suporte");
+            revalidatePath("/suporte/os");
             return NextResponse.json(os);
         });
     } catch (error) {
@@ -120,6 +123,8 @@ export async function PUT(req: Request) {
                 // Full sync logic could be here, but sticking to status restriction as priority
             }
 
+            revalidatePath("/suporte");
+            revalidatePath("/suporte/os");
             return NextResponse.json(os);
         });
     } catch (error) {
