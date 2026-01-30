@@ -4,18 +4,22 @@ import { Wrench, ClipboardList, Package, Clock, BarChart3, Users, TrendingUp, Al
 import { prisma } from "@/lib/prisma";
 
 export default async function SuporteDashboard() {
-    // Buscar estatísticas com fallback
+    // Buscar estatísticas e config do sistema
     let chamadosAbertos = 0;
     let osAndamento = 0;
     let itensEstoque = 0;
     let locacoesAtivas = 0;
     let itensEstoqueBaixo = 0;
     let ativosATI = 0;
+    let systemConfig = null;
 
     try {
-        const models = Object.keys(prisma).filter(k => !k.startsWith("_"));
-        console.log("Prisma Models Available:", models);
-        
+        // Buscar Config de Branding
+        systemConfig = await prisma.systemConfig.findUnique({ where: { id: 1 } });
+        if (!systemConfig) {
+            systemConfig = await prisma.systemConfig.create({ data: { id: 1, brandingText: "ERP Profissional" } });
+        }
+
         const countSafe = async (model: any, where?: any) => {
             try {
                 if (model && typeof model.count === "function") {
@@ -28,17 +32,18 @@ export default async function SuporteDashboard() {
             }
         };
 
+        // Contagens com status (Incase of capitalization issues, we check both or just ensure they exist)
         [chamadosAbertos, osAndamento, itensEstoque, locacoesAtivas, ativosATI] = await Promise.all([
-            countSafe(prisma.chamado, { status: { in: ["aberto", "em_andamento"] } }),
-            countSafe(prisma.ordemServico, { status: { in: ["pendente", "em_andamento"] } }),
+            countSafe(prisma.chamado, { status: { in: ["aberto", "em_andamento", "ABERTO", "EM_ANDAMENTO"] } }),
+            countSafe(prisma.ordemServico, { status: { in: ["pendente", "em_andamento", "PENDENTE", "EM_ANDAMENTO"] } }),
             countSafe(prisma.itemEstoque),
-            countSafe(prisma.contratoLocacao, { status: "ATIVO" }),
+            countSafe(prisma.contratoLocacao, { status: { in: ["ATIVO", "ativo"] } }),
             countSafe(prisma.ativoInterno)
         ]);
 
         // Itens com estoque baixo
         const allItens = await prisma.itemEstoque.findMany({ select: { quantidade: true, minimo: true } });
-        itensEstoqueBaixo = allItens.filter((i: any) => i.quantidade <= i.minimo).length;
+        itensEstoqueBaixo = allItens.filter((i: any) => i.quantidade <= (i.minimo || 0)).length;
     } catch (error) {
         console.error("Erro ao buscar estatísticas:", error);
     }
@@ -106,7 +111,7 @@ export default async function SuporteDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">ERP Profissional</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{systemConfig?.brandingText || "ERP Profissional"}</h1>
           <p className="text-gray-500 mt-2">Suporte Técnico, Gestão e Controle de Estoque</p>
         </div>
 

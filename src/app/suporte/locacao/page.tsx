@@ -107,7 +107,7 @@ export default function LocacaoDashboard() {
                   </div>
                 </Link>
                 
-                <Link href="/" className="p-6 bg-white border border-slate-100 rounded-xl hover:shadow-md transition-shadow flex items-center gap-4 group">
+                <Link href="/suporte" className="p-6 bg-white border border-slate-100 rounded-xl hover:shadow-md transition-shadow flex items-center gap-4 group">
                   <div className="p-3 bg-slate-100 rounded-lg text-slate-600 group-hover:bg-slate-800 group-hover:text-white transition-colors">
                     <LayoutDashboard size={24} />
                   </div>

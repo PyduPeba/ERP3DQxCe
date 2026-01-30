@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     };
 
     const menuItems = [
-        { href: "/", icon: LayoutDashboard, label: "Dashboard", module: 'DASHBOARD' },
+        { href: "/suporte", icon: LayoutDashboard, label: "Dashboard", module: 'DASHBOARD' },
         { href: "/pedidos", icon: ShoppingCart, label: "Pedidos", module: 'PEDIDOS' },
         { href: "/clientes", icon: Users, label: "Clientes", module: 'CLIENTES' },
     ];

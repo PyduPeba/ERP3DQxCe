@@ -273,7 +273,7 @@ export default function EquipamentosPage() {
               <ArrowLeft size={16} /> Voltar para Dashboard
           </Link>
           <span className="text-slate-300">|</span>
-          <Link href="/" className="flex items-center gap-1 hover:text-indigo-600 transition-colors">
+          <Link href="/suporte" className="flex items-center gap-1 hover:text-indigo-600 transition-colors">
               <LayoutDashboard size={16} /> Menu Principal
           </Link>
       </div>

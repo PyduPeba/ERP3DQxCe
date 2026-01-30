@@ -13,6 +13,16 @@ export default function LoginPage() {
     usuario: "",
     senha: "",
   });
+  const [systemConfig, setSystemConfig] = useState<any>(null);
+
+  useState(() => {
+    fetch("/api/config/system")
+      .then(res => res.json())
+      .then(data => {
+          if (data && !data.error) setSystemConfig(data);
+      })
+      .catch(() => {});
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,11 +62,11 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8 relative z-10 backdrop-blur-sm">
         
-        <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg mb-4 transform rotate-3">
+         <div className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg mb-4 transform rotate-3" style={{ backgroundColor: systemConfig?.brandingColor || '#2563eb' }}>
                 <Box size={32} strokeWidth={2.5} />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">ERP 3D</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{systemConfig?.brandingText || "ERP 3D"}</h1>
             <p className="text-gray-500 text-sm mt-1">Acesse sua conta para continuar</p>
         </div>
 
@@ -108,8 +118,8 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-            <p className="text-xs text-gray-400">
-                &copy; {new Date().getFullYear()} ERP 3D System. Todos os direitos reservados.
+             <p className="text-xs text-gray-400">
+                &copy; {new Date().getFullYear()} {systemConfig?.brandingText || "ERP 3D"} System. Todos os direitos reservados.
             </p>
         </div>
       </div>
