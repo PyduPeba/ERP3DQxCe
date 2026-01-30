@@ -145,6 +145,7 @@ Cole a configuração abaixo (ajuste o domínio):
 server {
     listen 80;
     server_name suportesolution.app.br;
+    client_max_body_size 50M;
 
     location / {
         proxy_pass http://localhost:3000;

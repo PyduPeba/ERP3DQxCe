@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
+import { compressImage } from "@/lib/imageCompression";
 
 export default function EquipamentosPage() {
   const [equipamentos, setEquipamentos] = useState<any[]>([]);
@@ -107,7 +108,7 @@ export default function EquipamentosPage() {
                 toast.error("Erro ao salvar foto.");
             }
           }
-        }, "image/jpeg", 0.8);
+        }, "image/jpeg", 0.7);
       }
     }
   };
@@ -124,7 +125,11 @@ export default function EquipamentosPage() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files?.[0]) return;
       
-      const file = e.target.files[0];
+      const rawFile = e.target.files[0];
+      const loadingToast = toast.loading("Otimizando foto...");
+      const file = await compressImage(rawFile);
+      toast.dismiss(loadingToast);
+
       const data = new FormData();
       data.append("file", file);
 

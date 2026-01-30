@@ -7,6 +7,7 @@ import { useState, useEffect, Suspense, useRef } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
+import { compressImage } from "@/lib/imageCompression";
 
 type OrdemServico = {
   id: number;
@@ -216,7 +217,12 @@ function OSContent() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files || !e.target.files[0] || !editingId) return;
-      const file = e.target.files[0];
+      
+      const rawFile = e.target.files[0];
+      const loadingToast = toast.loading("Otimizando foto...");
+      const file = await compressImage(rawFile);
+      toast.dismiss(loadingToast);
+
       const extension = file.name.split('.').pop() || 'png';
       
       // Fallback for crypto.randomUUID (not available in non-HTTPS mobile environments)
