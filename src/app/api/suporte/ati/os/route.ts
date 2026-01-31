@@ -39,7 +39,8 @@ export async function POST(req: Request) {
                 solicitanteId: Number(data.solicitanteId),
                 tecnicoId: data.tecnicoId ? Number(data.tecnicoId) : null,
                 descricaoProblema: data.descricaoProblema,
-                status: "ABERTA"
+                status: "ABERTA",
+                fotos: Array.isArray(data.fotos) ? data.fotos : []
             },
             include: {
                 ativo: true,

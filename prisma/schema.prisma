@@ -375,9 +375,10 @@ model AtivoInterno {
   departamentoId   Int?
   departamento     Departamento? @relation(fields: [departamentoId], references: [id])
   
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
+  fotos            String[]    @default([])
   ordensServico    OSInterna[]
   movimentacoes    MovimentacaoAtivo[]
 }
@@ -404,6 +405,7 @@ model OSInterna {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  fotos             String[] @default([])
   itensUsados       ItemOSInterna[]
 }
 

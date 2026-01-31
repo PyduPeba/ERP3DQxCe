@@ -1,11 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { ClipboardList, Save, ArrowLeft, Laptop, User, AlertCircle, Package, Plus, X, Wrench } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ClipboardList, Save, ArrowLeft, Laptop, User, AlertCircle, Package, Plus, X, Wrench, Camera, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
+import { compressImage } from "@/lib/imageCompression";
 
 export default function NovaOSInternaPage() {
     const router = useRouter();
@@ -19,7 +20,13 @@ export default function NovaOSInternaPage() {
         solicitanteId: "",
         tecnicoId: "",
         descricaoProblema: "",
+        fotos: [] as string[]
     });
+
+    const [showCamera, setShowCamera] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         // Load data for selects
@@ -38,6 +45,72 @@ export default function NovaOSInternaPage() {
     }, []);
 
     const safeUsers = Array.isArray(usuarios) ? usuarios : [];
+
+    const startCamera = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            if (videoRef.current) videoRef.current.srcObject = stream;
+        } catch (err: any) {
+            toast.error("Erro na câmera: " + (err.message || "Permissão negada"));
+            setShowCamera(false);
+        }
+    };
+
+    const stopCamera = () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    };
+
+    const capturePhoto = () => {
+        if (videoRef.current && canvasRef.current) {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        const file = new File([blob], `ati_os_${Date.now()}.jpg`, { type: "image/jpeg" });
+                        await handleFileUpload(file);
+                        stopCamera();
+                        setShowCamera(false);
+                    }
+                }, "image/jpeg", 0.7);
+            }
+        }
+    };
+
+    const handleFileUpload = async (rawFile: File) => {
+        const loadingToast = toast.loading("Otimizando foto...");
+        try {
+            const file = await compressImage(rawFile);
+            const data = new FormData();
+            data.append("file", file);
+
+            const res = await fetch("/api/upload", { method: "POST", body: data });
+            const json = await res.json();
+            
+            if (json.url) {
+                setFormData(prev => ({ ...prev, fotos: [...prev.fotos, json.url] }));
+                toast.success("Foto adicionada!");
+            }
+        } catch (err) {
+            toast.error("Erro ao enviar foto");
+        } finally {
+            toast.dismiss(loadingToast);
+        }
+    };
+
+    useEffect(() => {
+        if (showCamera) startCamera();
+        else stopCamera();
+        return () => stopCamera();
+    }, [showCamera]);
 
     const handleChange = (e: any) => {
         const { name, value } = e.target;
@@ -156,6 +229,54 @@ export default function NovaOSInternaPage() {
                                 />
                             </div>
 
+                            {/* Seção: Fotos */}
+                            <div className="md:col-span-2 space-y-4">
+                                <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
+                                    <Camera size={14} className="text-blue-500" /> Fotos do Equipamento / Problema
+                                </label>
+                                
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {formData.fotos.map((url, idx) => (
+                                        <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 group shadow-sm bg-gray-50">
+                                            <img src={url} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setFormData(prev => ({ ...prev, fotos: prev.fotos.filter((_, i) => i !== idx) }))}
+                                                className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-red-500 hover:text-white text-gray-700 rounded-xl transition-all shadow-sm"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Upload */}
+                                    <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            accept="image/*" 
+                                            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} 
+                                        />
+                                        <div className="p-2 bg-gray-50 rounded-xl text-gray-400 group-hover:text-blue-500 group-hover:bg-blue-50 transition-all">
+                                            <ImageIcon size={20} />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-400 mt-2 uppercase">Galeria</span>
+                                    </label>
+
+                                    {/* Câmera */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowCamera(true)}
+                                        className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group"
+                                    >
+                                        <div className="p-2 bg-gray-50 rounded-xl text-gray-400 group-hover:text-blue-500 group-hover:bg-blue-50 transition-all">
+                                            <Camera size={20} />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-400 mt-2 uppercase">Câmera</span>
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
 
                         <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-start gap-3">
@@ -181,6 +302,33 @@ export default function NovaOSInternaPage() {
                         </button>
                     </div>
                 </form>
+
+                {/* Camera Modal */}
+                {showCamera && (
+                    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="w-full max-w-lg bg-black rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+                            <div className="relative aspect-[3/4] bg-gray-900">
+                                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                                <canvas ref={canvasRef} className="hidden" />
+                                <button 
+                                    onClick={() => setShowCamera(false)}
+                                    className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-all"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="p-8 flex items-center justify-center bg-zinc-900">
+                                <button 
+                                    type="button"
+                                    onClick={capturePhoto}
+                                    className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center p-1 hover:scale-95 transition-all shadow-xl"
+                                >
+                                    <div className="w-full h-full bg-white rounded-full" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     );

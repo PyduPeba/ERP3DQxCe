@@ -12,7 +12,8 @@ export async function POST(req: Request) {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const filename = Date.now() + "_" + file.name.replaceAll(" ", "_");
+        const extension = path.extname(file.name) || ".jpg";
+        const filename = `${crypto.randomUUID()}${extension}`;
         const uploadDir = path.join(process.cwd(), "public/uploads");
 
         try {

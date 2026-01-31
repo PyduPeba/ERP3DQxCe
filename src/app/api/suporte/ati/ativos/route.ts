@@ -40,7 +40,8 @@ export async function POST(req: Request) {
                 localizacao: data.localizacao,
                 status: data.status || "OPERACIONAL",
                 tipoPropriedade: data.tipoPropriedade || "INTERNO",
-                clienteId: data.clienteId ? Number(data.clienteId) : null
+                clienteId: data.clienteId ? Number(data.clienteId) : null,
+                fotos: Array.isArray(data.fotos) ? data.fotos : []
             },
             include: {
                 cliente: true
