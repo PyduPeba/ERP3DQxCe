@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
     try {
@@ -15,6 +16,8 @@ export async function POST(req: Request) {
         const extension = path.extname(file.name) || ".jpg";
         const filename = `${crypto.randomUUID()}${extension}`;
         const uploadDir = path.join(process.cwd(), "public/uploads");
+
+        console.log("Saving file:", filename, "to", uploadDir);
 
         try {
             await mkdir(uploadDir, { recursive: true });
