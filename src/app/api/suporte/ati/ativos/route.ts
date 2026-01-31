@@ -42,7 +42,7 @@ export async function POST(req: Request) {
                 tipoPropriedade: data.tipoPropriedade || "INTERNO",
                 clienteId: data.clienteId ? Number(data.clienteId) : null,
                 fotos: Array.isArray(data.fotos) ? data.fotos : []
-            },
+            } as any,
             include: {
                 cliente: true
             }
