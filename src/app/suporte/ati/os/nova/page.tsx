@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 import { compressImage } from "@/lib/imageCompression";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function NovaOSInternaPage() {
     const router = useRouter();
+    const { user } = usePermissions();
     const [saving, setSaving] = useState(false);
     
     const [ativos, setAtivos] = useState<any[]>([]);
@@ -22,6 +24,12 @@ export default function NovaOSInternaPage() {
         descricaoProblema: "",
         fotos: [] as string[]
     });
+
+    useEffect(() => {
+        if (user && !formData.solicitanteId) {
+            setFormData(prev => ({ ...prev, solicitanteId: user.id.toString() }));
+        }
+    }, [user]);
 
     const [showCamera, setShowCamera] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
