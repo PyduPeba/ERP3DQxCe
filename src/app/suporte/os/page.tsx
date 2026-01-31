@@ -657,6 +657,7 @@ function OSContent() {
                     </div>
                 </div>
             </div>
+        )}
 
         {/* Modal de Cadastro Rápido de Cliente */}
         {showQuickClientModal && (
