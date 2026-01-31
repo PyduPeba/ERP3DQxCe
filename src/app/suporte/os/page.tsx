@@ -215,6 +215,35 @@ function OSContent() {
       } catch (e) { setDepartamentos([]); }
   }
 
+    const handleQuickClientSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            const res = await fetch("/api/clientes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    ...quickClientData, 
+                    tipo: "PF", // Default to PF for quick registration
+                    status: true 
+                })
+            });
+
+            if (!res.ok) throw new Error("Erro ao cadastrar cliente");
+            
+            const newClient = await res.json();
+            setClientes(prev => [newClient, ...prev]);
+            handleSelectClient(newClient);
+            setShowQuickClientModal(false);
+            setQuickClientData({ nome: "", telefone: "" });
+            toast.success("Cliente cadastrado com sucesso!");
+        } catch (error) {
+            toast.error("Erro ao cadastrar cliente. Verifique se os dados estão corretos.");
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files || !e.target.files[0] || !editingId) return;
       
@@ -362,6 +391,7 @@ function OSContent() {
         )}
 
         {showModal && (
+            // ... (keep existing modal content until line 630)
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 border-b border-gray-100 bg-gray-50 gap-4">
@@ -625,6 +655,65 @@ function OSContent() {
                             </button>
                         )}
                     </div>
+                </div>
+            </div>
+
+        {/* Modal de Cadastro Rápido de Cliente */}
+        {showQuickClientModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                        <div className="flex items-center gap-2">
+                            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                                <UserPlus size={20} />
+                            </div>
+                            <h3 className="font-bold text-gray-900">Cadastro Rápido</h3>
+                        </div>
+                        <button onClick={() => setShowQuickClientModal(false)} className="text-gray-400 hover:text-gray-600">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleQuickClientSubmit} className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Nome / Razão Social</label>
+                            <input 
+                                type="text" 
+                                required 
+                                className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 bg-gray-50" 
+                                placeholder="Nome completo..."
+                                value={quickClientData.nome}
+                                onChange={e => setQuickClientData({...quickClientData, nome: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Telefone / WhatsApp</label>
+                            <input 
+                                type="text" 
+                                className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 bg-gray-50" 
+                                placeholder="(00) 00000-0000"
+                                value={quickClientData.telefone}
+                                onChange={e => setQuickClientData({...quickClientData, telefone: e.target.value})}
+                            />
+                        </div>
+
+                        <div className="pt-4 flex gap-3">
+                            <button 
+                                type="button" 
+                                onClick={() => setShowQuickClientModal(false)} 
+                                className="flex-1 py-3 text-gray-700 font-bold hover:bg-gray-100 rounded-xl transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                type="submit" 
+                                disabled={submitting} 
+                                className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {submitting ? "Salvando..." : "Cadastrar"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         )}
