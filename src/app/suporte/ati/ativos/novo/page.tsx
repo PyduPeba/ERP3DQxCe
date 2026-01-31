@@ -81,20 +81,26 @@ export default function NovoAtivoPage() {
     };
 
     const handleFileUpload = async (rawFile: File) => {
+        console.log("Starting upload for:", rawFile.name, rawFile.size);
         const loadingToast = toast.loading("Otimizando foto...");
         try {
             const file = await compressImage(rawFile);
+            console.log("Compressed file size:", file.size);
             const data = new FormData();
             data.append("file", file);
 
             const res = await fetch("/api/upload", { method: "POST", body: data });
             const json = await res.json();
+            console.log("Upload response:", json);
             
             if (json.url) {
                 setFormData(prev => ({ ...prev, fotos: [...prev.fotos, json.url] }));
                 toast.success("Foto adicionada!");
+            } else {
+                console.error("No URL in response:", json);
             }
         } catch (err) {
+            console.error("Upload process error:", err);
             toast.error("Erro ao processar foto");
         } finally {
             toast.dismiss(loadingToast);
