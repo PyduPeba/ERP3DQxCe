@@ -1,14 +1,16 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { ClipboardList, Plus, Search, Filter, ArrowRight, User, Laptop, Calendar } from "lucide-react";
+import { ClipboardList, Plus, Search, Filter, ArrowRight, User, Laptop, Calendar, ZoomIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import ImageOverlay from "@/app/components/suporte/ImageOverlay";
 
 export default function OSInternasPage() {
     const [ordens, setOrdens] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
     useEffect(() => {
         fetchOrdens();
@@ -104,7 +106,25 @@ export default function OSInternasPage() {
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-gray-100 text-gray-500 rounded-lg"><Laptop size={14} /></div>
+                                                <div className="relative group/photo">
+                                                    <div className="p-1.5 bg-gray-100 text-gray-500 rounded-lg">
+                                                        {os.fotos && os.fotos.length > 0 ? (
+                                                            <img 
+                                                                src={os.fotos[0]} 
+                                                                alt={os.ativo.nome} 
+                                                                className="w-8 h-8 object-cover rounded cursor-zoom-in" 
+                                                                onClick={() => setPreviewPhoto(os.fotos[0])}
+                                                            />
+                                                        ) : (
+                                                            <Laptop size={14} />
+                                                        )}
+                                                    </div>
+                                                    {os.fotos && os.fotos.length > 0 && (
+                                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center pointer-events-none rounded">
+                                                            <ZoomIn size={10} className="text-white" />
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-800">{os.ativo.nome}</div>
                                                     <div className="text-[10px] text-gray-500 truncate max-w-[150px]">{os.ativo.numeroPatrimonio}</div>
@@ -136,6 +156,12 @@ export default function OSInternasPage() {
                     </table>
                 </div>
 
+                {previewPhoto && (
+                    <ImageOverlay 
+                        src={previewPhoto} 
+                        onClose={() => setPreviewPhoto(null)} 
+                    />
+                )}
             </div>
         </DashboardLayout>
     );

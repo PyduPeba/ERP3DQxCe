@@ -1,12 +1,13 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { Laptop, Save, ArrowLeft, Tag, Calendar, DollarSign, MapPin, Box, User, Camera, Image as ImageIcon, X } from "lucide-react";
+import { Laptop, Save, ArrowLeft, Tag, Calendar, DollarSign, MapPin, Box, User, Camera, Image as ImageIcon, X, ZoomIn } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 import { compressImage } from "@/lib/imageCompression";
+import ImageOverlay from "@/app/components/suporte/ImageOverlay";
 
 export default function NovoAtivoPage() {
     const router = useRouter();
@@ -29,6 +30,7 @@ export default function NovoAtivoPage() {
     });
 
     const [showCamera, setShowCamera] = useState(false);
+    const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -294,14 +296,17 @@ export default function NovoAtivoPage() {
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                 {formData.fotos.map((url, idx) => (
                                     <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 group shadow-sm bg-gray-50">
-                                        <img src={url} alt={`Foto ${idx}`} className="w-full h-full object-cover" />
+                                        <img src={url} alt={`Foto ${idx}`} className="w-full h-full object-cover cursor-zoom-in" onClick={() => setPreviewPhoto(url)} />
                                         <button 
                                             type="button" 
                                             onClick={() => setFormData(prev => ({ ...prev, fotos: prev.fotos.filter((_, i) => i !== idx) }))}
-                                            className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-red-500 hover:text-white text-gray-700 rounded-xl transition-all shadow-sm"
+                                            className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-red-500 hover:text-white text-gray-700 rounded-xl transition-all shadow-sm z-10"
                                         >
                                             <X size={14} />
                                         </button>
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                            <ZoomIn size={24} className="text-white" />
+                                        </div>
                                     </div>
                                 ))}
                                 
@@ -374,6 +379,14 @@ export default function NovoAtivoPage() {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Photo Preview Overlay */}
+                {previewPhoto && (
+                    <ImageOverlay 
+                        src={previewPhoto} 
+                        onClose={() => setPreviewPhoto(null)} 
+                    />
                 )}
             </div>
         </DashboardLayout>

@@ -1,14 +1,16 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { Laptop, Plus, Search, Filter, MoreHorizontal, History, Wrench, ArrowLeftRight, User } from "lucide-react";
+import { Laptop, Plus, Search, Filter, MoreHorizontal, History, Wrench, ArrowLeftRight, User, ZoomIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import ImageOverlay from "@/app/components/suporte/ImageOverlay";
 
 export default function AtivosInternosPage() {
     const [ativos, setAtivos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAtivos();
@@ -80,8 +82,24 @@ export default function AtivosInternosPage() {
                             <div key={ativo.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all overflow-hidden group">
                                 <div className="p-5">
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                                            <Laptop size={24} />
+                                        <div className="relative group/photo">
+                                            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                                                {ativo.fotos && ativo.fotos.length > 0 ? (
+                                                    <img 
+                                                        src={ativo.fotos[0]} 
+                                                        alt={ativo.nome} 
+                                                        className="w-10 h-10 object-cover rounded-lg cursor-zoom-in" 
+                                                        onClick={() => setPreviewPhoto(ativo.fotos[0])}
+                                                    />
+                                                ) : (
+                                                    <Laptop size={24} />
+                                                )}
+                                            </div>
+                                            {ativo.fotos && ativo.fotos.length > 0 && (
+                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center pointer-events-none rounded-lg">
+                                                    <ZoomIn size={14} className="text-white" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
@@ -129,6 +147,13 @@ export default function AtivosInternosPage() {
                             </div>
                         ))}
                     </div>
+                )}
+
+                {previewPhoto && (
+                    <ImageOverlay 
+                        src={previewPhoto} 
+                        onClose={() => setPreviewPhoto(null)} 
+                    />
                 )}
             </div>
         </DashboardLayout>
