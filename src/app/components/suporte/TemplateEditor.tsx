@@ -35,6 +35,7 @@ export default function TemplateEditor({ initialTemplate, previewData, onSave }:
   const [blocks, setBlocks] = useState<TemplateBlock[]>(initialTemplate?.blocos || []);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isPreview, setIsPreview] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -172,67 +173,115 @@ export default function TemplateEditor({ initialTemplate, previewData, onSave }:
     >
       <div className="flex h-screen bg-gray-100 overflow-hidden">
         {/* Left Sidebar - Block Palette */}
-        <BlockPalette onAddBlock={(type) => {
-          const newBlock = createBlock(type);
-          setBlocks([...blocks, newBlock]);
-          setSelectedBlockId(newBlock.id);
-        }} />
+        {!isPreview && (
+          <BlockPalette onAddBlock={(type) => {
+            const newBlock = createBlock(type);
+            setBlocks([...blocks, newBlock]);
+            setSelectedBlockId(newBlock.id);
+          }} />
+        )}
 
         {/* Main Canvas */}
         <div className="flex-1 overflow-y-auto p-8 bg-gray-50/50">
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className={`${isPreview ? 'max-w-[21cm] mx-auto' : 'max-w-4xl mx-auto'} space-y-6 transition-all duration-500`}>
+            
             {/* Canvas Header */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div className={`bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between no-print ${isPreview ? 'mb-8' : ''}`}>
               <div>
-                <h2 className="text-xl font-black text-gray-900">Canvas do Template</h2>
-                <p className="text-sm text-gray-500">Arraste blocos da paleta ou clique para adicionar</p>
+                <h2 className="text-xl font-black text-gray-900">
+                  {isPreview ? 'Visualização do Relatório' : 'Canvas do Template'}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {isPreview ? 'Veja como o relatório será impresso/gerado' : 'Arraste blocos da paleta ou clique para adicionar'}
+                </p>
               </div>
-              <button
-                onClick={handleSave}
-                className="px-8 py-3 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
-              >
-                Salvar Template
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsPreview(!isPreview)}
+                  className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${
+                    isPreview 
+                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' 
+                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {isPreview ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    )}
+                  </svg>
+                  {isPreview ? 'Voltar para Edição' : 'Visualizar Impressão'}
+                </button>
+
+                {!isPreview && (
+                  <button
+                    onClick={handleSave}
+                    className="px-8 py-3 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+                  >
+                    Salvar Template
+                  </button>
+                )}
+
+                {isPreview && (
+                   <button
+                   onClick={() => window.print()}
+                   className="px-6 py-3 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition-all flex items-center gap-2"
+                 >
+                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                   </svg>
+                   Imprimir / PDF
+                 </button>
+                )}
+              </div>
             </div>
 
             {/* Droppable Canvas Area */}
-            <DroppableCanvas isEmpty={blocks.length === 0}>
-              {blocks.length === 0 ? (
-                <>
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4 animate-pulse">
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-900 font-bold text-lg mb-1">Canvas vazio</p>
-                  <p className="text-gray-400 text-sm">Arraste componentes da paleta ou clique neles para começar</p>
-                </>
-              ) : (
-                <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-4">
-                    {blocks.map((block) => (
-                      <SortableBlock
-                        key={block.id}
-                        block={block}
-                        data={previewData}
-                        onDelete={handleDeleteBlock}
-                        onSelect={setSelectedBlockId}
-                        isSelected={selectedBlockId === block.id}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              )}
-            </DroppableCanvas>
+            <div className={isPreview ? 'bg-white shadow-2xl min-h-[29.7cm] p-[2cm] origin-top transform transition-all duration-500 rounded-sm' : ''}>
+              <DroppableCanvas isEmpty={blocks.length === 0 && !isPreview}>
+                {blocks.length === 0 ? (
+                  !isPreview && (
+                    <>
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4 animate-pulse">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-900 font-bold text-lg mb-1">Canvas vazio</p>
+                      <p className="text-gray-400 text-sm">Arraste componentes da paleta ou clique neles para começar</p>
+                    </>
+                  )
+                ) : (
+                  <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
+                    <div className={isPreview ? 'space-y-0' : 'space-y-4'}>
+                      {blocks.map((block) => (
+                        <SortableBlock
+                          key={block.id}
+                          block={block}
+                          data={previewData}
+                          onDelete={handleDeleteBlock}
+                          onSelect={setSelectedBlockId}
+                          isSelected={selectedBlockId === block.id && !isPreview}
+                          isPreview={isPreview}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                )}
+              </DroppableCanvas>
+            </div>
           </div>
         </div>
 
         {/* Right Sidebar - Properties Panel */}
-        <PropertiesPanel
-          block={selectedBlock}
-          onUpdate={handleUpdateBlock}
-          onClose={() => setSelectedBlockId(null)}
-        />
+        {!isPreview && (
+          <PropertiesPanel
+            block={selectedBlock}
+            onUpdate={handleUpdateBlock}
+            onClose={() => setSelectedBlockId(null)}
+          />
+        )}
       </div>
 
       <DragOverlay>
@@ -242,6 +291,20 @@ export default function TemplateEditor({ initialTemplate, previewData, onSave }:
           </div>
         )}
       </DragOverlay>
+      
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: white !important; }
+          .flex-1 { overflow: visible !important; padding: 0 !important; }
+          .bg-gray-100, .bg-gray-50\/50 { background: white !important; }
+          .max-w-[21cm] { max-width: none !important; margin: 0 !important; }
+          .p-\[2cm\] { padding: 0 !important; }
+          .shadow-2xl { shadow: none !important; }
+          .border { border: none !important; }
+        }
+      `}</style>
     </DndContext>
   );
 }
