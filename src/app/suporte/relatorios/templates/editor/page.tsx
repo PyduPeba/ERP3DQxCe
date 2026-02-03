@@ -4,13 +4,13 @@ import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import TemplateEditor from "@/app/components/suporte/TemplateEditor";
 import { VisualTemplate } from "@/types/templateTypes";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function TemplateEditorPage() {
+function TemplateEditorContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const templateId = searchParams.get('id');
@@ -109,44 +109,54 @@ export default function TemplateEditorPage() {
 
     if (loading) {
         return (
-            <PermissionGuard module="SUPORTE">
-                <DashboardLayout>
-                    <div className="flex items-center justify-center h-screen">
-                        <p className="text-gray-500">Carregando editor...</p>
-                    </div>
-                </DashboardLayout>
-            </PermissionGuard>
+            <div className="flex items-center justify-center h-screen">
+                <p className="text-gray-500">Carregando editor...</p>
+            </div>
         );
     }
 
     return (
-        <PermissionGuard module="SUPORTE">
-            <div className="h-screen flex flex-col">
-                {/* Top Bar */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-                    <Link 
-                        href="/suporte/relatorios?tab=templates" 
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft size={20} />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900">
-                            {templateId ? 'Editar Template Visual' : 'Novo Template Visual'}
-                        </h1>
-                        <p className="text-sm text-gray-500">
-                            Arraste e configure blocos para criar seu template personalizado
-                        </p>
-                    </div>
+        <div className="h-screen flex flex-col">
+            {/* Top Bar */}
+            <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+                <Link 
+                    href="/suporte/relatorios?tab=templates" 
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                    <ArrowLeft size={20} />
+                </Link>
+                <div>
+                    <h1 className="text-xl font-bold text-gray-900">
+                        {templateId ? 'Editar Template Visual' : 'Novo Template Visual'}
+                    </h1>
+                    <p className="text-sm text-gray-500">
+                        Arraste e configure blocos para criar seu template personalizado
+                    </p>
                 </div>
-
-                {/* Editor */}
-                <TemplateEditor
-                    initialTemplate={template}
-                    previewData={previewData}
-                    onSave={handleSave}
-                />
             </div>
+
+            {/* Editor */}
+            <TemplateEditor
+                initialTemplate={template}
+                previewData={previewData}
+                onSave={handleSave}
+            />
+        </div>
+    );
+}
+
+export default function TemplateEditorPage() {
+    return (
+        <PermissionGuard module="SUPORTE">
+            <DashboardLayout>
+                <Suspense fallback={
+                    <div className="flex items-center justify-center h-screen">
+                        <p className="text-gray-500">Carregando editor...</p>
+                    </div>
+                }>
+                    <TemplateEditorContent />
+                </Suspense>
+            </DashboardLayout>
         </PermissionGuard>
     );
 }

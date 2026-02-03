@@ -1,0 +1,87 @@
+﻿
+> web@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+node.exe : ÔÜá The "middleware" file 
+convention is deprecated. Please use "proxy" 
+instead. Learn more: https://nextjs.org/docs/
+messages/middleware-to-proxy
+No linha:1 caractere:1
++ & "C:\Users\CeearaU\AppData\Local\fnm_multi
+shells\1832_1770082593578/ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified:  
+   (ÔÜá The "middle...leware-to-proxy:Strin  
+  g) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandE 
+   rror
+ 
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 8.2s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+Vari├ível de Ambiente DATABASE_URL: Configurada
+  Generating static pages using 11 workers (0/65) ...
+  Generating static pages using 11 workers (16/65) 
+  Generating static pages using 11 workers (32/65) 
+  Generating static pages using 11 workers (48/65) 
+Ô¿» useSearchParams() should be wrapped in a 
+suspense boundary at page 
+"/suporte/relatorios/templates/editor". Read 
+more: https://nextjs.org/docs/messages/missin
+g-suspense-with-csr-bailout
+    at Q (C:\Users\CeearaU\Desktop\ERP3DQxCe\
+web\.next\server\chunks\ssr\node_modules_next
+_920e7746._.js:2:2111)
+    at o (C:\Users\CeearaU\Desktop\ERP3DQxCe\
+web\.next\server\chunks\ssr\node_modules_next
+_920e7746._.js:4:5284)
+    at bT (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\.next\server\chunks\ssr\[root-of-the-ser
+ver]__46c009a0._.js:1:64524)
+    at an (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:84360)
+    at ai (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:86179)
+    at al (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:107953)
+    at as (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:105368)
+    at aa (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:84712)
+    at ai (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:86228)
+    at ai (C:\Users\CeearaU\Desktop\ERP3DQxCe
+\web\node_modules\next\dist\compiled\next-ser
+ver\app-page-turbo.runtime.prod.js:2:104708)
+Error occurred prerendering page 
+"/suporte/relatorios/templates/editor". Read 
+more: https://nextjs.org/docs/messages/preren
+der-error
+Export encountered an error on 
+/suporte/relatorios/templates/editor/page: 
+/suporte/relatorios/templates/editor, 
+exiting the build.
+Ô¿» Next.js build worker exited with code: 1 
+and signal: null

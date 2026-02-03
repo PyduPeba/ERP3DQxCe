@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const template = await prisma.templateRelatorio.findUnique({
-            where: { id: parseInt(params.id) }
+            where: { id: parseInt(id) }
         });
 
         if (!template) {
@@ -18,12 +19,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const data = await req.json();
 
         const template = await prisma.templateRelatorio.update({
-            where: { id: parseInt(params.id) },
+            where: { id: parseInt(id) },
             data: {
                 nome: data.nome,
                 categoria: data.categoria,
@@ -39,10 +41,11 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         await prisma.templateRelatorio.delete({
-            where: { id: parseInt(params.id) }
+            where: { id: parseInt(id) }
         });
 
         return NextResponse.json({ success: true });
