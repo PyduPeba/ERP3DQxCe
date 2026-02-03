@@ -5,7 +5,7 @@ import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import { 
     BarChart3, TrendingUp, Users, Package, FileText, 
     Plus, Search, Calendar, ChevronRight, Layout, Settings2,
-    Printer, Download, Trash2, Edit3, ClipboardCheck, Clock
+    Printer, Download, Trash2, Edit3, ClipboardCheck, Clock, Building2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -353,12 +353,20 @@ export default function RelatoriosPage() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
                             <h2 className="text-lg font-bold text-gray-800">Modelos de Descrição de Serviço</h2>
-                            <button 
-                                onClick={() => { setEditingTemplate(null); setTemplateForm({ titulo: "", descricao: "", categoria: "Geral" }); setIsTemplateModalOpen(true); }}
-                                className="bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-emerald-700 transition-all font-bold"
-                            >
-                                <Plus size={18} /> Novo Template
-                            </button>
+                            <div className="flex gap-3">
+                                <Link
+                                    href="/configuracoes/prestador"
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all font-bold"
+                                >
+                                    <Building2 size={18} /> Configurar Prestador
+                                </Link>
+                                <button 
+                                    onClick={() => { setEditingTemplate(null); setTemplateForm({ titulo: "", descricao: "", categoria: "Geral" }); setIsTemplateModalOpen(true); }}
+                                    className="bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-emerald-700 transition-all font-bold"
+                                >
+                                    <Plus size={18} /> Novo Template
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
