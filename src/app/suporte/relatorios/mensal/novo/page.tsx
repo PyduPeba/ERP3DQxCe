@@ -4,7 +4,7 @@ import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { 
     FileText, ArrowLeft, Save, Calendar, User, 
     Plus, Trash2, Layout, ClipboardList, Search,
-    ChevronDown, ChevronUp, Clock, Eye, X
+    ChevronDown, ChevronUp, Clock, Eye, X, CheckCircle, XCircle, AlertCircle
 } from "lucide-react";
 import RelatorioPrevia from "@/app/components/suporte/RelatorioPrevia";
 import { useState, useEffect } from "react";
@@ -32,6 +32,7 @@ export default function NovoRelatorioPage() {
     const [itens, setItens] = useState<any[]>([]);
     const [showTemplatePicker, setShowTemplatePicker] = useState<number | null>(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<string[]>(["concluido"]);
 
     const selectedCliente = clientes.find(c => c.id.toString() === formData.clienteId);
 
@@ -48,37 +49,30 @@ export default function NovoRelatorioPage() {
             return;
         }
         
+        if (statusFilter.length === 0) {
+            toast.error("Selecione pelo menos um status para importar");
+            return;
+        }
+        
         setLoading(true);
         try {
-            // Logic to fetch Chamados and OS for this client/month
-            const res = await fetch(`/api/suporte/chamados?clienteId=${formData.clienteId}&mes=${formData.mesReferencia}&ano=${formData.anoReferencia}`);
-            const tickets = await res.json();
+            // Fetch OS directly with status filter
+            const statusQuery = statusFilter.join(',');
+            const res = await fetch(`/api/suporte/os?clienteId=${formData.clienteId}&mes=${formData.mesReferencia}&ano=${formData.anoReferencia}&status=${statusQuery}`);
+            const ordens = await res.json();
             
-            if (Array.isArray(tickets)) {
-                const newItens = tickets.map(t => {
-                    // Coleta fotos do Chamado
-                    let ticketPhotos: string[] = [];
-                    if (t.anexos) {
-                        try {
-                            const parsed = JSON.parse(t.anexos);
-                            ticketPhotos = Array.isArray(parsed) ? parsed : [t.anexos];
-                        } catch {
-                            ticketPhotos = t.anexos.includes(',') ? t.anexos.split(',').map((s: string) => s.trim()) : [t.anexos];
-                        }
-                    }
-
-                    // Coleta fotos de todas as Ordens de Serviço vinculadas
-                    const osPhotos = t.ordensServico?.flatMap((os: any) => 
-                        os.anexos?.map((anexo: any) => anexo.url) || []
-                    ) || [];
+            if (Array.isArray(ordens)) {
+                const newItens = ordens.map(os => {
+                    // Collect photos from OS
+                    const osPhotos = os.anexos?.map((anexo: any) => anexo.url) || [];
 
                     return {
-                        data: t.createdAt,
-                        descricaoServico: t.solucao || t.descricao,
-                        equipamento: t.equipamento,
-                        tombo: t.patrimonio,
+                        data: os.dataInicio || os.createdAt,
+                        descricaoServico: os.laudoTecnico || os.descricao,
+                        equipamento: os.chamado?.equipamento || "",
+                        tombo: os.chamado?.patrimonio || "",
                         status: "Realizado",
-                        fotos: Array.from(new Set([...ticketPhotos, ...osPhotos])).filter(Boolean)
+                        fotos: Array.from(new Set(osPhotos)).filter(Boolean)
                     };
                 });
                 setItens(newItens);
@@ -202,6 +196,47 @@ export default function NovoRelatorioPage() {
                                     <option value="DETALHADO">Órgão Público (Completo)</option>
                                     <option value="SIMPLIFICADO">Resumo Executivo</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        {/* Status Filter for Import */}
+                        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                            <label className="block text-xs font-black text-gray-700 uppercase mb-3 tracking-widest">
+                                Filtrar por Status das OS:
+                            </label>
+                            <div className="flex flex-wrap gap-3">
+                                {[
+                                    { value: "concluido", label: "Concluídas", icon: CheckCircle, color: "green" },
+                                    { value: "em_andamento", label: "Em Andamento", icon: Clock, color: "blue" },
+                                    { value: "pendente", label: "Pendentes", icon: AlertCircle, color: "yellow" },
+                                    { value: "cancelado", label: "Canceladas", icon: XCircle, color: "red" }
+                                ].map((status) => {
+                                    const Icon = status.icon;
+                                    const isSelected = statusFilter.includes(status.value);
+                                    const colorClasses = {
+                                        green: isSelected ? "bg-green-600 text-white border-green-600" : "bg-white text-green-600 border-green-200 hover:bg-green-50",
+                                        blue: isSelected ? "bg-blue-600 text-white border-blue-600" : "bg-white text-blue-600 border-blue-200 hover:bg-blue-50",
+                                        yellow: isSelected ? "bg-yellow-600 text-white border-yellow-600" : "bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50",
+                                        red: isSelected ? "bg-red-600 text-white border-red-600" : "bg-white text-red-600 border-red-200 hover:bg-red-50"
+                                    };
+                                    return (
+                                        <button
+                                            key={status.value}
+                                            type="button"
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setStatusFilter(statusFilter.filter(s => s !== status.value));
+                                                } else {
+                                                    setStatusFilter([...statusFilter, status.value]);
+                                                }
+                                            }}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all border ${colorClasses[status.color as keyof typeof colorClasses]}`}
+                                        >
+                                            <Icon className="w-4 h-4" />
+                                            {status.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 

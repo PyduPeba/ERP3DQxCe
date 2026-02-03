@@ -4,9 +4,36 @@ import { verifySession } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const clienteId = searchParams.get("clienteId");
+        const mes = searchParams.get("mes");
+        const ano = searchParams.get("ano");
+        const statusParam = searchParams.get("status");
+
+        const where: any = {};
+
+        if (clienteId) {
+            where.OR = [
+                { clienteId: Number(clienteId) },
+                { chamado: { clienteId: Number(clienteId) } }
+            ];
+        }
+
+        if (mes && ano) {
+            const startDate = new Date(Number(ano), Number(mes) - 1, 1);
+            const endDate = new Date(Number(ano), Number(mes), 0, 23, 59, 59);
+            where.dataInicio = { gte: startDate, lte: endDate };
+        }
+
+        if (statusParam) {
+            const statuses = statusParam.split(',');
+            where.status = { in: statuses };
+        }
+
         const ordensServico = await prisma.ordemServico.findMany({
+            where,
             orderBy: { createdAt: "desc" },
             include: {
                 chamado: true,
@@ -16,6 +43,7 @@ export async function GET() {
                     },
                 },
                 departamento: true,
+                anexos: true,
             },
         });
         return NextResponse.json(ordensServico);

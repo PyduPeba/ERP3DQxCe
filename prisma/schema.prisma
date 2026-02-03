@@ -511,3 +511,12 @@ model SystemConfig {
   logoUrl              String?
   updatedAt            DateTime @updatedAt
 }
+
+model ConfiguracaoPrestador {
+  id          Int      @id @default(1)
+  nomeEmpresa String   @default("SUA EMPRESA DE TI LTDA")
+  cnpj        String   @default("00.000.000/0001-00")
+  contato     String   @default("Contato: suporte@empresa.com.br")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
