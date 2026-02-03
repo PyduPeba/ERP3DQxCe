@@ -435,7 +435,7 @@ function OSContent() {
                             {editingId && ordensServico.find(o => o.id === editingId)?.dataInicio && (
                                 <div className="flex items-center gap-1 text-sm font-normal text-blue-600">
                                     <Calendar className="w-4 h-4" />
-                                    <span>Data de Abertura</span>
+                                    <span>{new Date(ordensServico.find(o => o.id === editingId)?.dataInicio || "").toLocaleDateString('pt-BR')}</span>
                                 </div>
                             )}
                         </h2>
