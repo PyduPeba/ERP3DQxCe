@@ -5,7 +5,7 @@ import PermissionGuard from "@/app/components/auth/PermissionGuard";
 import { 
     BarChart3, TrendingUp, Users, Package, FileText, 
     Plus, Search, Calendar, ChevronRight, Layout, Settings2,
-    Printer, Download, Trash2, Edit3, ClipboardCheck, Clock, Building2
+    Printer, Download, Trash2, Edit3, ClipboardCheck, Clock, Building2, Wand2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -359,6 +359,12 @@ export default function RelatoriosPage() {
                                     className="bg-blue-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all font-bold"
                                 >
                                     <Building2 size={18} /> Configurar Prestador
+                                </Link>
+                                <Link
+                                    href="/suporte/relatorios/templates/editor"
+                                    className="bg-purple-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-purple-700 transition-all font-bold"
+                                >
+                                    <Wand2 size={18} /> Editor Visual
                                 </Link>
                                 <button 
                                     onClick={() => { setEditingTemplate(null); setTemplateForm({ titulo: "", descricao: "", categoria: "Geral" }); setIsTemplateModalOpen(true); }}

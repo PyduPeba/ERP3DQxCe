@@ -520,3 +520,13 @@ model ConfiguracaoPrestador {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model TemplateRelatorio {
+  id                Int      @id @default(autoincrement())
+  nome              String
+  categoria         String   @default("Geral")
+  blocos            Json     // Array de TemplateBlock
+  configuracaoGeral Json     // Configurações de página
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
