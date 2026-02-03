@@ -33,6 +33,7 @@ export default function NovoRelatorioPage() {
     const [showTemplatePicker, setShowTemplatePicker] = useState<number | null>(null);
     const [showPreview, setShowPreview] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string[]>(["concluido"]);
+    const [prestador, setPrestador] = useState<any>(null);
 
     const selectedCliente = clientes.find(c => c.id.toString() === formData.clienteId);
 
@@ -40,6 +41,7 @@ export default function NovoRelatorioPage() {
         // Load initial data
         fetch("/api/clientes").then(res => res.json()).then(setClientes);
         fetch("/api/suporte/relatorios/templates").then(res => res.json()).then(setTemplates);
+        fetch("/api/configuracoes/prestador").then(res => res.json()).then(setPrestador);
     }, []);
 
     // Fetch tickets for the selected client and month
@@ -424,7 +426,8 @@ export default function NovoRelatorioPage() {
                                             ...formData,
                                             cliente: selectedCliente
                                         }} 
-                                        itens={itens} 
+                                        itens={itens}
+                                        prestador={prestador}
                                     />
                                 </div>
                             </div>

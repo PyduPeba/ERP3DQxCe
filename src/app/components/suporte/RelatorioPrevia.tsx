@@ -29,9 +29,14 @@ interface RelatorioPreviaProps {
         status?: string;
         fotos?: string[];
     }[];
+    prestador?: {
+        nomeEmpresa: string;
+        cnpj: string;
+        contato: string;
+    };
 }
 
-export default function RelatorioPrevia({ data, itens }: RelatorioPreviaProps) {
+export default function RelatorioPrevia({ data, itens, prestador }: RelatorioPreviaProps) {
     const parseSafeDate = (dateVal: any) => {
         if (!dateVal) return null;
         const d = new Date(dateVal);
@@ -62,9 +67,9 @@ export default function RelatorioPrevia({ data, itens }: RelatorioPreviaProps) {
                 <div className="space-y-4">
                     <div>
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Prestador</p>
-                        <p className="font-bold">SUA EMPRESA DE TI LTDA</p>
-                        <p className="text-xs text-gray-600">CNPJ: 00.000.000/0001-00</p>
-                        <p className="text-xs text-gray-600">Contato: suporte@empresa.com.br</p>
+                        <p className="font-bold">{prestador?.nomeEmpresa || "SUA EMPRESA DE TI LTDA"}</p>
+                        <p className="text-xs text-gray-600">{prestador?.cnpj || "CNPJ: 00.000.000/0001-00"}</p>
+                        <p className="text-xs text-gray-600">{prestador?.contato || "Contato: suporte@empresa.com.br"}</p>
                     </div>
                 </div>
                 <div className="space-y-4 border-l-0 md:border-l md:pl-10 border-gray-100">
@@ -187,7 +192,7 @@ export default function RelatorioPrevia({ data, itens }: RelatorioPreviaProps) {
                 <div>
                     <div className="border-t border-gray-900 pt-2 mx-auto max-w-[200px]">
                         <p className="text-sm font-bold">Responsável Técnico</p>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-tighter">SUA EMPRESA DE TI</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-tighter">{prestador?.nomeEmpresa || "SUA EMPRESA DE TI"}</p>
                     </div>
                 </div>
                 <div>
