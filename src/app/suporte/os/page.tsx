@@ -58,7 +58,7 @@ function OSContent() {
   const [clientSearch, setClientSearch] = useState("");
   const [filteredClientes, setFilteredClientes] = useState<ClienteData[]>([]);
   const [showClientSuggestions, setShowClientSuggestions] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("pendente");
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
 
   const [formData, setFormData] = useState({
@@ -371,9 +371,41 @@ function OSContent() {
           )}
         </div>
 
+        {/* Status Filter Buttons */}
+        <div className="flex flex-wrap gap-2 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          {[
+            { value: "todos", label: "Todos", icon: FileText, color: "gray" },
+            { value: "pendente", label: "Pendentes", icon: Clock, color: "gray" },
+            { value: "em_andamento", label: "Em Andamento", icon: Clock, color: "blue" },
+            { value: "concluido", label: "Concluídos", icon: CheckCircle, color: "green" },
+            { value: "cancelado", label: "Cancelados", icon: X, color: "red" }
+          ].map((filter) => {
+            const Icon = filter.icon;
+            const isActive = statusFilter === filter.value;
+            const colorClasses = {
+              gray: isActive ? "bg-gray-600 text-white" : "bg-gray-50 text-gray-600 hover:bg-gray-100",
+              blue: isActive ? "bg-blue-600 text-white" : "bg-blue-50 text-blue-600 hover:bg-blue-100",
+              green: isActive ? "bg-green-600 text-white" : "bg-green-50 text-green-600 hover:bg-green-100",
+              red: isActive ? "bg-red-600 text-white" : "bg-red-50 text-red-600 hover:bg-red-100"
+            };
+            return (
+              <button
+                key={filter.value}
+                onClick={() => setStatusFilter(filter.value)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${colorClasses[filter.color as keyof typeof colorClasses]}`}
+              >
+                <Icon className="w-4 h-4" />
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+
         {loading ? <p>Carregando...</p> : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ordensServico.map((os) => (
+            {ordensServico
+              .filter(os => statusFilter === "todos" || os.status === statusFilter)
+              .map((os) => (
               <div key={os.id} onClick={() => handleEdit(os)} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer group">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -395,9 +427,17 @@ function OSContent() {
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 border-b border-gray-100 bg-gray-50 gap-4">
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-emerald-600" />
-                            <span className="truncate">{editingId ? `Editar OS #${ordensServico.find(o => o.id === editingId)?.numero}` : "Nova Ordem de Serviço"}</span>
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div className="flex items-center gap-2">
+                                <FileText className="w-5 h-5 text-emerald-600" />
+                                <span className="truncate">{editingId ? `Editar OS #${ordensServico.find(o => o.id === editingId)?.numero}` : "Nova Ordem de Serviço"}</span>
+                            </div>
+                            {editingId && ordensServico.find(o => o.id === editingId)?.dataInicio && (
+                                <div className="flex items-center gap-1 text-sm font-normal text-blue-600">
+                                    <Calendar className="w-4 h-4" />
+                                    <span>Data de Abertura</span>
+                                </div>
+                            )}
                         </h2>
                         
                         <div className="flex items-center gap-3 justify-between sm:justify-end">
