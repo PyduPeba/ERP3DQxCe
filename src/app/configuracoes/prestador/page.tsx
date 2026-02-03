@@ -65,7 +65,7 @@ export default function ConfiguracaoPrestadorPage() {
             <DashboardLayout>
                 <div className="max-w-3xl mx-auto space-y-6">
                     <div className="flex items-center gap-4">
-                        <Link href="/configuracoes" className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-gray-200 transition-all text-gray-400">
+                        <Link href="/suporte/relatorios" className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-gray-200 transition-all text-gray-400">
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
@@ -129,7 +129,7 @@ export default function ConfiguracaoPrestadorPage() {
                             </div>
 
                             <div className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
-                                <Link href="/configuracoes" className="px-6 py-3 text-gray-500 font-bold hover:text-gray-700 transition-colors">
+                                <Link href="/suporte/relatorios" className="px-6 py-3 text-gray-500 font-bold hover:text-gray-700 transition-colors">
                                     Cancelar
                                 </Link>
                                 <button
