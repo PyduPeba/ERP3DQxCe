@@ -203,6 +203,29 @@ export default function PropertiesPanel({ block, onUpdate, onClose }: Properties
           </div>
         )}
 
+        {block.type === 'signature' && (
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={block.config.tecnico ?? true}
+                onChange={(e) => updateConfig('tecnico', e.target.checked)}
+                className="rounded"
+              />
+              Assinatura do Técnico
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={block.config.cliente ?? true}
+                onChange={(e) => updateConfig('cliente', e.target.checked)}
+                className="rounded"
+              />
+              Visto do Cliente
+            </label>
+          </div>
+        )}
+
         {/* Common Style Properties */}
         <div className="pt-4 border-t border-gray-200">
           <h4 className="text-xs font-black text-gray-400 uppercase mb-3">Estilo</h4>

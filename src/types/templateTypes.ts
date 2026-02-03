@@ -42,6 +42,10 @@ export interface TemplateBlock {
 
         // Spacer specific
         height?: string;
+
+        // Signature specific
+        tecnico?: boolean;
+        cliente?: boolean;
     };
 }
 
